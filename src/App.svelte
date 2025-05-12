@@ -4,9 +4,12 @@
   import Principal from './components/Principal.svelte';
   import Perfil from './components/Perfil.svelte';
   import MisProyectos from './components/MisProyectos.svelte';
+  import CrearProyecto from './components/CrearProyecto.svelte';
   
   let currentRoute = '/login';
   let showPerfilModal = false;
+  let showProyectosModal = false;
+  let showCrearProyectoModal = false;
   
   onMount(() => {
     const token = localStorage.getItem('token');
@@ -19,6 +22,10 @@
     console.log("Navegando a:", route);
     if (route === '/perfil') {
       showPerfilModal = true;
+    } else if (route === '/proyectos' || route === '/MisProyectos') {
+      showProyectosModal = true;
+    } else if (route === '/crear-proyecto') {
+      showCrearProyectoModal = true;
     } else {
       currentRoute = route;
     }
@@ -38,8 +45,23 @@
         </div>
       </div>
     {/if}
-  {:else if currentRoute === '/proyectos' || currentRoute === '/MisProyectos'}
-    <MisProyectos onNavigate={navigateTo} />
+    {#if showProyectosModal}
+      <div class="modal-overlay">
+        <div class="modal-container">
+          <button class="close-modal" on:click={() => showProyectosModal = false}>×</button>
+          <MisProyectos onNavigate={navigateTo} />
+        </div>
+      </div>
+    {/if}
+    {#if showCrearProyectoModal}
+      <CrearProyecto
+        onClose={() => showCrearProyectoModal = false}
+        onSuccess={() => {
+          showCrearProyectoModal = false;
+          // Aquí puedes agregar la lógica para actualizar la lista de proyectos
+        }}
+      />
+    {/if}
   {:else}
     <div class="error-page">
       <h2>Ruta no encontrada: {currentRoute}</h2>
