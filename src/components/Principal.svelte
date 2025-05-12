@@ -356,11 +356,11 @@
       </div>
       
       <nav class="menu">
-        <a href="#inicio" class="menu-item active">
+        <a href="#inicio" class="menu-item active" on:click|preventDefault={() => onNavigate('/principal')}>
           <i class="icon">🏠</i>
           <span>Inicio</span>
         </a>
-        <a href="#proyectos" class="menu-item">
+        <a href="#proyectos" class="menu-item" on:click|preventDefault={() => onNavigate('/proyectos')}>
           <i class="icon">📁</i>
           <span>Proyectos</span>
         </a>
@@ -376,7 +376,7 @@
           <i class="icon">👥</i>
           <span>Equipo</span>
         </a>
-        <a href="#perfil" class="menu-item">
+        <a href="#perfil" class="menu-item" on:click|preventDefault={() => onNavigate('/perfil')}>
           <i class="icon">👤</i>
           <span>Perfil</span>
         </a>
