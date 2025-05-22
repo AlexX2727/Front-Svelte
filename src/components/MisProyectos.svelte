@@ -4,6 +4,7 @@
   import AddMemberModal from './AddMemberModal.svelte';
   
   export let onNavigate: (route: string) => void;
+  export let onEditProject: (id: number) => void;
   
   interface Proyecto {
     id: number;
@@ -52,8 +53,7 @@
   }
   
   function handleEditClick(id: number) {
-    console.log(`Editar proyecto con ID: ${id}`);
-    // Aquí puedes implementar la lógica para editar el proyecto
+    onEditProject(id);
   }
   
   function handleAddMembersClick(id: number) {
@@ -88,6 +88,35 @@
         return "var(--status-pending)";
       default:
         return "var(--status-default)";
+    }
+  }
+
+  let showDeleteConfirm = false;
+  let projectToDelete: number | null = null;
+
+  async function handleDeleteProject(id: number) {
+    projectToDelete = id;
+    showDeleteConfirm = true;
+  }
+
+  async function confirmDelete() {
+    if (!projectToDelete) return;
+    
+    try {
+      const response = await api.delete(`/projects/${projectToDelete}?force=true`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      
+      showDeleteConfirm = false;
+      projectToDelete = null;
+      await fetchProyectos();
+    } catch (error: any) {
+      console.error("Error eliminando proyecto:", error);
+      const errorMessage = error.response?.data?.message || 
+                          "No se pudo eliminar el proyecto. Por favor, inténtalo de nuevo.";
+      alert(errorMessage);
     }
   }
 </script>
@@ -186,6 +215,12 @@
               >
                 👥 Añadir Miembros
               </button>
+              <button 
+                class="action-button delete"
+                on:click={() => handleDeleteProject(proyecto.id)}
+              >
+                🗑️ Eliminar
+              </button>
             </div>
           </div>
         {/each}
@@ -202,7 +237,25 @@
   />
 {/if}
 
+{#if showDeleteConfirm}
+  <div class="modal-overlay" on:click={() => showDeleteConfirm = false}>
+    <div class="delete-confirm-modal" on:click|stopPropagation>
+      <h3>¿Estás seguro?</h3>
+      <p>Esta acción eliminará el proyecto junto con todas sus tareas asociadas y miembros. Esta acción no se puede deshacer.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" on:click={() => showDeleteConfirm = false}>
+          Cancelar
+        </button>
+        <button class="btn-delete" on:click={confirmDelete}>
+          Eliminar Proyecto
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
+
 <style>
+  /* General styles */
   .proyectos-container {
     padding: 2rem;
     max-width: 1200px;
@@ -245,6 +298,7 @@
     font-size: 1.2rem;
   }
 
+  /* Project grid and cards */
   .proyectos-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -298,6 +352,7 @@
     color: white;
   }
 
+  /* Project stats */
   .proyecto-stats {
     display: flex;
     gap: 1.5rem;
@@ -324,6 +379,7 @@
     font-size: 0.85rem;
   }
 
+  /* Project dates */
   .proyecto-dates {
     margin-top: 1rem;
     font-size: 0.9rem;
@@ -339,6 +395,7 @@
     font-weight: 500;
   }
 
+  /* Action buttons */
   .proyecto-actions {
     display: flex;
     gap: 1rem;
@@ -369,11 +426,17 @@
     color: white;
   }
 
+  .action-button.delete {
+    background-color: #e74c3c;
+    color: white;
+  }
+
   .action-button:hover {
     transform: translateY(-2px);
     filter: brightness(1.1);
   }
 
+  /* Loading state */
   .loading-container {
     display: flex;
     flex-direction: column;
@@ -391,6 +454,7 @@
     animation: spin 1s linear infinite;
   }
 
+  /* Empty state */
   .no-proyectos {
     text-align: center;
     padding: 3rem;
@@ -402,12 +466,82 @@
     margin-bottom: 1rem;
   }
 
+  /* Delete confirmation modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .delete-confirm-modal {
+    background: #1a1a1a;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    border: 1px solid rgba(231, 76, 60, 0.2);
+  }
+
+  .delete-confirm-modal h3 {
+    color: #e74c3c;
+    margin: 0 0 1rem;
+  }
+
+  .delete-confirm-modal p {
+    color: #b0b0b0;
+    margin-bottom: 2rem;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+  }
+
+  .btn-cancel {
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    border: 1px solid #b0b0b0;
+    color: #b0b0b0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-delete {
+    padding: 0.75rem 1.5rem;
+    background: #e74c3c;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-cancel:hover {
+    background: rgba(176, 176, 176, 0.1);
+  }
+
+  .btn-delete:hover {
+    background: #c0392b;
+  }
+
+  /* Animations */
   @keyframes spin {
     to {
       transform: rotate(360deg);
     }
   }
 
+  /* Responsive styles */
   @media (max-width: 768px) {
     .proyectos-container {
       padding: 1rem;

@@ -1,657 +1,479 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import api from '../lib/api';
-    
-    export let onNavigate: (route: string) => void;
-    
-    // Variables reactivas
-    let userData = { firstName: 'Usuario', lastName: 'Desconocido' };
-    let dashboardData = null;
-    let isLoading = true;
-    let error = '';
-    
-    // Obtener la fecha actual
-    const today = new Date();
-    const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    const dateString = today.toLocaleDateString('es-ES', options);
-    
-    // Función para obtener iniciales de un nombre
-    function getInitials(firstName, lastName) {
-      return `${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}`;
-    }
-    
-    // Función para formatear fecha relativa
-    function getRelativeTime(dateString) {
-      const date = new Date(dateString);
-      const now = new Date();
-      const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-      
-      if (diffDays === 0) return 'Hoy';
-      if (diffDays === 1) return 'Ayer';
-      return `Hace ${diffDays} días`;
-    }
-    
-    // Función para identificar clase CSS de prioridad
-    function getPriorityClass(priority) {
-      switch (priority.toLowerCase()) {
-        case 'high': return 'high';
-        case 'medium': return 'medium';
-        case 'low': return 'low';
-        case 'critical': return 'critical';
-        default: return '';
-      }
-    }
-    
-    // Función para identificar clase CSS de estado
-    function getStatusClass(status) {
-      switch (status.toLowerCase()) {
-        case 'to do': return 'todo';
-        case 'in progress': return 'in-progress';
-        case 'review': return 'review';
-        case 'blocked': return 'blocked';
-        default: return '';
-      }
-    }
-    
-    // Función para cargar los datos del dashboard
-    async function loadDashboardData() {
-      try {
-        isLoading = true;
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
-          onNavigate('/login');
-          return;
-        }
-        
-        // Configurar el token para todas las solicitudes
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        
-        // Obtener información del usuario desde localStorage
-        const userString = localStorage.getItem('user');
-        if (userString) {
-          userData = JSON.parse(userString);
-        }
-        
-        // Obtener datos del dashboard
-        const dashboardResponse = await api.get('/dashboard');
-        dashboardData = dashboardResponse.data;
-        
-        console.log('Dashboard data:', dashboardData);
-        
-        isLoading = false;
-      } catch (err) {
-        console.error('Error al cargar datos del dashboard:', err);
-        isLoading = false;
-        
-        // Manejar diferentes tipos de errores
-        if (err.response) {
-          // Error de respuesta del servidor
-          if (err.response.status === 401 || err.response.status === 403) {
-            error = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
-            setTimeout(() => {
-              localStorage.removeItem('token');
-              onNavigate('/login');
-            }, 2000);
-          } else if (err.response.status === 404) {
-            error = 'El servicio de dashboard no está disponible. Mostrando datos de ejemplo.';
-            
-            // Como fallback, mostrar datos simulados
-            dashboardData = getMockDashboardData();
-            isLoading = false;
-          } else {
-            error = `Error del servidor: ${err.response.status} ${err.response.statusText}`;
-          }
-        } else if (err.request) {
-          // Error de conexión
-          error = 'No se pudo conectar con el servidor. Mostrando datos de ejemplo.';
-          dashboardData = getMockDashboardData();
-          isLoading = false;
-        } else {
-          // Otro tipo de error
-          error = `Error inesperado: ${err.message}`;
-        }
-      }
-    }
-    
-    // Función para generar datos de prueba similares a las imágenes
-    function getMockDashboardData() {
-      return {
-        activeProjects: {
-          count: 4,
-          projects: [
-            {
-              id: 1,
-              name: "Prueba2",
-              description: "sfafsga",
-              status: "Active",
-              owner: {
-                id: 1,
-                firstName: "Denny",
-                lastName: "Alexander Rosales"
-              },
-              taskCount: 3,
-              memberCount: 3
-            },
-            {
-              id: 2,
-              name: "Taller desafío1",
-              description: "2323",
-              status: "Active",
-              owner: {
-                id: 2,
-                firstName: "Alexander",
-                lastName: "Dann"
-              },
-              taskCount: 0,
-              memberCount: 0
-            },
-            {
-              id: 3,
-              name: "proyecto prueba",
-              description: "prueba 11",
-              status: "Active",
-              owner: {
-                id: 1,
-                firstName: "DENNY",
-                lastName: "FLORES"
-              },
-              taskCount: 0,
-              memberCount: 0
-            },
-            {
-              id: 4,
-              name: "Proyecto de Prueba",
-              description: "Este es un proyecto de prueba para verificar la funcionalidad",
-              status: "Active",
-              owner: {
-                id: 1,
-                firstName: "Denny",
-                lastName: "Alexander Rosales"
-              },
-              taskCount: 3,
-              memberCount: 6
-            }
-          ]
-        },
-        pendingTasks: {
-          count: 5,
-          tasks: [
-            {
-              id: 1,
-              title: "Tarea de prueba",
-              status: "To Do",
-              priority: "Medium",
-              dueDate: null,
-              project: {
-                id: 4,
-                name: "Proyecto de Prueba"
-              },
-              assignee: null
-            },
-            {
-              id: 2,
-              title: "porrrr",
-              status: "Blocked",
-              priority: "Low",
-              dueDate: "2025-06-05T00:00:00.000Z",
-              project: {
-                id: 1,
-                name: "Prueba2"
-              },
-              assignee: {
-                id: 3,
-                firstName: "Regular",
-                lastName: "User",
-                username: "regular",
-                avatar: null
-              }
-            },
-            {
-              id: 3,
-              title: "NUEVA TAREA",
-              status: "In Progress",
-              priority: "High",
-              dueDate: "2025-05-05T00:00:00.000Z",
-              project: {
-                id: 1,
-                name: "Prueba2"
-              },
-              assignee: {
-                id: 1,
-                firstName: "DENNY",
-                lastName: "FLORES",
-                username: "denny",
-                avatar: null
-              }
-            },
-            {
-              id: 4,
-              title: "sfafsa",
-              status: "Review",
-              priority: "High",
-              dueDate: "2025-06-04T00:00:00.000Z",
-              project: {
-                id: 4,
-                name: "Proyecto de Prueba"
-              },
-              assignee: {
-                id: 2,
-                firstName: "Alexander",
-                lastName: "Dann",
-                username: "alex",
-                avatar: null
-              }
-            },
-            {
-              id: 5,
-              title: "error",
-              status: "To Do",
-              priority: "Medium",
-              dueDate: "2025-05-07T00:00:00.000Z",
-              project: {
-                id: 1,
-                name: "Prueba2"
-              },
-              assignee: null
-            }
-          ]
-        },
-        completedTasks: {
-          count: 1,
-          tasks: [
-            {
-              id: 6,
-              title: "Tarea completada",
-              completedAt: "2025-05-09T18:30:00.000Z",
-              project: {
-                id: 4,
-                name: "Proyecto de Prueba"
-              },
-              assignee: {
-                id: 1,
-                firstName: "DENNY",
-                lastName: "FLORES",
-                username: "denny",
-                avatar: null
-              }
-            }
-          ]
-        },
-        taskCollaborators: {
-          tasks: [
-            {
-              id: 1,
-              title: "Tarea Demo",
-              collaboratorCount: 21,
-              project: {
-                id: 1,
-                name: "Proyecto Demo"
-              }
-            }
-          ]
-        },
-        recentActivity: {
-          activities: [
-            {
-              type: "task_created",
-              id: 1,
-              title: "prueba",
-              projectId: 4,
-              projectName: "Proyecto de Prueba",
-              userId: 1,
-              userName: "DENNY FLORES",
-              userAvatar: null,
-              timestamp: "2025-05-08T14:25:30.000Z"
-            },
-            {
-              type: "task_created",
-              id: 2,
-              title: "porrrr",
-              projectId: 1,
-              projectName: "Prueba2",
-              userId: 3,
-              userName: "Regular User",
-              userAvatar: null,
-              timestamp: "2025-05-07T10:15:20.000Z"
-            },
-            {
-              type: "task_created",
-              id: 3,
-              title: "sfafsa",
-              projectId: 4,
-              projectName: "Proyecto de Prueba",
-              userId: 2,
-              userName: "Alexander Dann",
-              userAvatar: null,
-              timestamp: "2025-05-07T09:30:15.000Z"
-            }
-          ]
-        }
-      };
-    }
-    
-    // Función para cerrar sesión
-    function handleLogout() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      onNavigate('/login');
-    }
-    
-    onMount(() => {
-      loadDashboardData();
-    });
-  </script>
+  import { onMount } from 'svelte';
+  import api from '../lib/api';
   
-  <div class="dashboard-container">
-    <!-- Barra lateral -->
-    <aside class="sidebar">
-      <div class="logo">
-        <svg width="36" height="36" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="25" cy="25" r="20" stroke="#3498db" stroke-width="2" />
-          <path d="M16 25L22 31L34 19" stroke="#3498db" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-          <path d="M25 10V14M25 36V40M40 25H36M14 25H10M35.4 14.6L32.5 17.5M17.5 32.5L14.6 35.4M35.4 35.4L32.5 32.5M17.5 17.5L14.6 14.6" stroke="#3498db" stroke-width="2" stroke-linecap="round" />
-        </svg>
-        <span class="app-name">Task<span class="highlight">Master</span></span>
+  // Mantenemos tu implementación existente con soporte para onOpenTask
+  export let onNavigate: (route: string) => void;
+  export let onOpenTask: (taskId: number) => void = () => {}; // Añadido como prop opcional
+  
+  let selectedTaskId = null;
+  let showTaskDetail = false;
+
+  // Modificamos para usar onOpenTask si se proporciona
+  function handleTaskClick(taskId) {
+      if (typeof onOpenTask === 'function') {
+          // Si App.svelte proporciona esta función, la usamos
+          onOpenTask(taskId);
+      } else {
+          // De lo contrario, mantenemos la lógica local
+          selectedTaskId = taskId;
+          showTaskDetail = true;
+      }
+  }
+
+  function handleCloseTaskDetail() {
+      showTaskDetail = false;
+      selectedTaskId = null;
+  }
+  
+  // Variables reactivas
+  let userData = { firstName: 'Usuario', lastName: 'Desconocido' };
+  let dashboardData = null;
+  let isLoading = true;
+  let error = '';
+  
+  // Obtener la fecha actual
+  const today = new Date();
+  const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+  const dateString = today.toLocaleDateString('es-ES', options);
+  
+  // Función para obtener iniciales de un nombre
+  function getInitials(firstName, lastName) {
+    return `${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}`;
+  }
+  
+  // Función para formatear fecha relativa
+  function getRelativeTime(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Hoy';
+    if (diffDays === 1) return 'Ayer';
+    return `Hace ${diffDays} días`;
+  }
+  
+  // Función para identificar clase CSS de prioridad
+  function getPriorityClass(priority) {
+    switch (priority.toLowerCase()) {
+      case 'high': return 'high';
+      case 'medium': return 'medium';
+      case 'low': return 'low';
+      case 'critical': return 'critical';
+      default: return '';
+    }
+  }
+  
+  // Función para identificar clase CSS de estado
+  function getStatusClass(status) {
+    switch (status.toLowerCase()) {
+      case 'todo': return 'todo';
+      case 'in progress': return 'in-progress';
+      case 'review': return 'review';
+      case 'blocked': return 'blocked';
+      default: return '';
+    }
+  }
+  
+  // Función para cargar los datos del dashboard desde la API
+  async function loadDashboardData() {
+    try {
+      isLoading = true;
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      if (!token || !user) {
+        onNavigate('/login');
+        return;
+      }
+      
+      // Configurar el token para todas las solicitudes
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
+      // Obtener información del usuario desde localStorage
+      const userString = localStorage.getItem('user');
+      if (userString) {
+        userData = JSON.parse(userString);
+      }
+      
+      // Obtener datos del dashboard desde tu API
+      const dashboardResponse = await api.get('/dashboard');
+      
+      // Obtener proyectos del usuario actual
+      const response = await api.get(`/projects/owner/${user.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Asignar los datos directamente desde la respuesta de tu API
+      dashboardData = {
+        ...dashboardResponse.data,
+        projects: response.data
+      };
+      
+      console.log('Dashboard data:', dashboardData);
+      
+      isLoading = false;
+    } catch (err) {
+      console.error('Error al cargar datos del dashboard:', err);
+      isLoading = false;
+      
+      // Manejar diferentes tipos de errores
+      if (err.response) {
+        // Error de respuesta del servidor
+        if (err.response.status === 401 || err.response.status === 403) {
+          error = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+          setTimeout(() => {
+            localStorage.removeItem('token');
+            onNavigate('/login');
+          }, 2000);
+        } else if (err.response.status === 404) {
+          error = 'El servicio de dashboard no está disponible.';
+        } else {
+          error = `Error del servidor: ${err.response.status} ${err.response.statusText}`;
+        }
+      } else if (err.request) {
+        // Error de conexión
+        error = 'No se pudo conectar con el servidor.';
+      } else {
+        // Otro tipo de error
+        error = `Error inesperado: ${err.message}`;
+      }
+    }
+  }
+  
+  // Función para cerrar sesión
+  function handleLogout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    onNavigate('/login');
+  }
+  
+  onMount(() => {
+    loadDashboardData();
+  });
+</script>
+
+<div class="dashboard-container">
+  <!-- Barra lateral -->
+  <aside class="sidebar">
+    <div class="logo">
+      <svg width="36" height="36" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="25" cy="25" r="20" stroke="#3498db" stroke-width="2" />
+        <path d="M16 25L22 31L34 19" stroke="#3498db" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M25 10V14M25 36V40M40 25H36M14 25H10M35.4 14.6L32.5 17.5M17.5 32.5L14.6 35.4M35.4 35.4L32.5 32.5M17.5 17.5L14.6 14.6" stroke="#3498db" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      <span class="app-name">Task<span class="highlight">Master</span></span>
+    </div>
+    
+    <nav class="menu">
+      <a href="#inicio" class="menu-item active" on:click|preventDefault={() => onNavigate('/principal')}>
+        <i class="icon">🏠</i>
+        <span>Inicio</span>
+      </a>
+      <a href="#proyectos" class="menu-item" on:click|preventDefault={() => onNavigate('/proyectos')}>
+        <i class="icon">📁</i>
+        <span>Proyectos</span>
+      </a>
+      <a href="#tareas" class="menu-item" on:click|preventDefault={() => onNavigate('/tareas')}>
+        <i class="icon">✓</i>
+        <span>Tareas</span>
+      </a>
+    
+      <a href="#equipo" class="menu-item">
+        <i class="icon">👥</i>
+        <span>Equipo</span>
+      </a>
+      <a href="#perfil" class="menu-item" on:click|preventDefault={() => onNavigate('/perfil')}>
+        <i class="icon">👤</i>
+        <span>Perfil</span>
+      </a>
+    </nav>
+    
+    <button on:click={handleLogout} class="logout-btn">
+      <i class="icon">🔒</i>
+      <span>Cerrar Sesión</span>
+    </button>
+  </aside>
+  
+  <!-- Contenido principal -->
+  <main class="main-content">
+    <!-- Cabecera -->
+    <header class="header">
+      <div class="welcome">
+        <h1>Buenas {today.getHours() < 12 ? 'días' : today.getHours() < 19 ? 'tardes' : 'noches'}, 
+          <span class="user-name">{userData.firstName} {userData.lastName}</span> 
+          <span class="wave">👋</span>
+        </h1>
+        <p class="date">{dateString}</p>
       </div>
       
-      <nav class="menu">
-        <a href="#inicio" class="menu-item active" on:click|preventDefault={() => onNavigate('/principal')}>
-          <i class="icon">🏠</i>
-          <span>Inicio</span>
-        </a>
-        <a href="#proyectos" class="menu-item" on:click|preventDefault={() => onNavigate('/proyectos')}>
-          <i class="icon">📁</i>
-          <span>Proyectos</span>
-        </a>
-        <a href="#tareas" class="menu-item">
-          <i class="icon">✓</i>
-          <span>Tareas</span>
-        </a>
-        <a href="#calendario" class="menu-item">
-          <i class="icon">📅</i>
-          <span>Calendario</span>
-        </a>
-        <a href="#equipo" class="menu-item">
-          <i class="icon">👥</i>
-          <span>Equipo</span>
-        </a>
-        <a href="#perfil" class="menu-item" on:click|preventDefault={() => onNavigate('/perfil')}>
-          <i class="icon">👤</i>
-          <span>Perfil</span>
-        </a>
-      </nav>
-      
-      <button on:click={handleLogout} class="logout-btn">
-        <i class="icon">🔒</i>
-        <span>Cerrar Sesión</span>
-      </button>
-    </aside>
+      <div class="header-actions">
+        <button class="icon-btn">
+          <i class="icon">💬</i>
+        </button>
+        <button class="icon-btn">
+          <i class="icon">🔔</i>
+          <span class="badge">1</span>
+        </button>
+        <div class="user-avatar">
+          <span>
+            {getInitials(userData.firstName, userData.lastName)}
+          </span>
+        </div>
+      </div>
+    </header>
     
-    <!-- Contenido principal -->
-    <main class="main-content">
-      <!-- Cabecera -->
-      <header class="header">
-        <div class="welcome">
-          <h1>Buenas {today.getHours() < 12 ? 'días' : today.getHours() < 19 ? 'tardes' : 'noches'}, 
-            <span class="user-name">{userData.firstName} {userData.lastName}</span> 
-            <span class="wave">👋</span>
-          </h1>
-          <p class="date">{dateString}</p>
+    <!-- Contenido del dashboard -->
+    <div class="dashboard-content">
+      {#if isLoading}
+        <div class="loading">
+          <span class="spinner"></span>
+          <p>Cargando datos...</p>
+        </div>
+      {:else if error}
+        <div class="error-message">
+          <p>{error}</p>
+          <button on:click={loadDashboardData}>Reintentar</button>
+        </div>
+      {:else if dashboardData}
+        <!-- Fila 1: Métricas principales -->
+        <div class="metrics-row">
+          <div class="metric-card">
+            <div class="metric-icon project-icon">📁</div>
+            <div class="metric-content">
+              <h2 class="metric-value">{dashboardData.activeProjects.count}</h2>
+              <p class="metric-label">Proyectos Activos</p>
+            </div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-icon task-icon">📝</div>
+            <div class="metric-content">
+              <h2 class="metric-value">{dashboardData.pendingTasks.count}</h2>
+              <p class="metric-label">Tareas Pendientes</p>
+            </div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-icon completed-icon">✓</div>
+            <div class="metric-content">
+              <h2 class="metric-value">{dashboardData.completedTasks.count}</h2>
+              <p class="metric-label">Completadas</p>
+            </div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-icon team-icon">👥</div>
+            <div class="metric-content">
+              <h2 class="metric-value">
+                {dashboardData.taskCollaborators.tasks.reduce((sum, task) => sum + task.collaboratorCount, 0)}
+              </h2>
+              <p class="metric-label">Colaboradores</p>
+            </div>
+          </div>
         </div>
         
-        <div class="header-actions">
-          <button class="icon-btn">
-            <i class="icon">💬</i>
-          </button>
-          <button class="icon-btn">
-            <i class="icon">🔔</i>
-            <span class="badge">1</span>
-          </button>
-          <div class="user-avatar">
-            <span>
-              {getInitials(userData.firstName, userData.lastName)}
-            </span>
+        <!-- Fila 2: Gráficos -->
+        <div class="charts-row">
+          <div class="chart-card">
+            <h3 class="chart-title">Proyectos por Estado</h3>
+            <div class="chart-container donut-chart">
+              <div class="placeholder-chart">
+                <div class="donut active-projects"></div>
+                <div class="chart-legend">
+                  <div class="legend-item">
+                    <span class="color-box active"></span>
+                    <span>Active</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="chart-card">
+            <h3 class="chart-title">Tareas por Prioridad</h3>
+            <div class="chart-container bar-chart">
+              <div class="placeholder-chart">
+                <div class="bar-container">
+                  <div class="bar high"></div>
+                  <div class="bar medium"></div>
+                  <div class="bar low"></div>
+                  <div class="bar critical"></div>
+                </div>
+                <div class="chart-x-labels">
+                  <span>High</span>
+                  <span>Medium</span>
+                  <span>Low</span>
+                  <span>Critical</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </header>
-      
-      <!-- Contenido del dashboard -->
-      <div class="dashboard-content">
-        {#if isLoading}
-          <div class="loading">
-            <span class="spinner"></span>
-            <p>Cargando datos...</p>
-          </div>
-        {:else if error}
-          <div class="error-message">
-            <p>{error}</p>
-            <button on:click={loadDashboardData}>Reintentar</button>
-          </div>
-        {:else if dashboardData}
-          <!-- Fila 1: Métricas principales -->
-          <div class="metrics-row">
-            <div class="metric-card">
-              <div class="metric-icon project-icon">📁</div>
-              <div class="metric-content">
-                <h2 class="metric-value">{dashboardData.activeProjects.count}</h2>
-                <p class="metric-label">Proyectos Activos</p>
-              </div>
-            </div>
-            
-            <div class="metric-card">
-              <div class="metric-icon task-icon">📝</div>
-              <div class="metric-content">
-                <h2 class="metric-value">{dashboardData.pendingTasks.count}</h2>
-                <p class="metric-label">Tareas Pendientes</p>
-              </div>
-            </div>
-            
-            <div class="metric-card">
-              <div class="metric-icon completed-icon">✓</div>
-              <div class="metric-content">
-                <h2 class="metric-value">{dashboardData.completedTasks.count}</h2>
-                <p class="metric-label">Completadas</p>
-              </div>
-            </div>
-            
-            <div class="metric-card">
-              <div class="metric-icon team-icon">👥</div>
-              <div class="metric-content">
-                <h2 class="metric-value">
-                  {dashboardData.taskCollaborators.tasks.reduce((sum, task) => sum + task.collaboratorCount, 0)}
-                </h2>
-                <p class="metric-label">Colaboradores</p>
-              </div>
+        
+        <!-- Fila 3: Gráfico de línea de tareas completadas -->
+        <div class="timeline-card">
+          <h3 class="chart-title">Tareas Completadas (Últimos 7 días)</h3>
+          <div class="chart-container line-chart">
+            <div class="placeholder-chart timeline">
+              <div class="line"></div>
             </div>
           </div>
-          
-          <!-- Fila 2: Gráficos -->
-          <div class="charts-row">
-            <div class="chart-card">
-              <h3 class="chart-title">Proyectos por Estado</h3>
-              <div class="chart-container donut-chart">
-                <div class="placeholder-chart">
-                  <div class="donut active-projects"></div>
-                  <div class="chart-legend">
-                    <div class="legend-item">
-                      <span class="color-box active"></span>
-                      <span>Active</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="chart-card">
-              <h3 class="chart-title">Tareas por Prioridad</h3>
-              <div class="chart-container bar-chart">
-                <div class="placeholder-chart">
-                  <div class="bar-container">
-                    <div class="bar high"></div>
-                    <div class="bar medium"></div>
-                    <div class="bar low"></div>
-                    <div class="bar critical"></div>
-                  </div>
-                  <div class="chart-x-labels">
-                    <span>High</span>
-                    <span>Medium</span>
-                    <span>Low</span>
-                    <span>Critical</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Fila 3: Gráfico de línea de tareas completadas -->
-          <div class="timeline-card">
-            <h3 class="chart-title">Tareas Completadas (Últimos 7 días)</h3>
-            <div class="chart-container line-chart">
-              <div class="placeholder-chart timeline">
-                <div class="line"></div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Fila 4: Proyectos activos y actividad reciente -->
-          <div class="detail-row">
-            <div class="detail-card project-list">
-              <div class="card-header">
-                <h3 class="card-title">Proyectos Activos</h3>
-                <a href="#ver-todos" class="view-all">Ver todos</a>
-              </div>
-              
-              <div class="projects-container">
-                {#each dashboardData.activeProjects.projects as project}
-                  <div class="project-item">
-                    <div class="project-details">
-                      <h4 class="project-name">{project.name}</h4>
-                      <p class="project-description">{project.description || ''}</p>
-                      
-                      <div class="project-meta">
-                        <span class="meta-item"><i class="meta-icon">📝</i> {project.taskCount} tareas</span>
-                        <span class="meta-item"><i class="meta-icon">👥</i> {project.memberCount} miembros</span>
-                      </div>
-                      
-                      <div class="progress-bar">
-                        <div class="progress" style="width: {(project.taskCount > 0) ? '75%' : '10%'};"></div>
-                      </div>
-                    </div>
-                    
-                    <div class="project-info">
-                      <span class={`status-badge ${project.status.toLowerCase()}`}>{project.status}</span>
-                    </div>
-                    
-                    <div class="project-owner">
-                      <div class="avatar">
-                        {getInitials(project.owner.firstName, project.owner.lastName)}
-                      </div>
-                      <span class="owner-name">{project.owner.firstName} {project.owner.lastName}</span>
-                    </div>
-                  </div>
-                {/each}
-                
-                <button class="create-project-btn">
-                  <i class="add-icon">+</i> Crear Proyecto
-                </button>
-              </div>
-            </div>
-            
-            <div class="detail-card activity-list">
-              <div class="card-header">
-                <h3 class="card-title">Actividad Reciente</h3>
-              </div>
-              
-              <div class="activities-container">
-                {#each dashboardData.recentActivity.activities as activity}
-                  <div class="activity-item">
-                    <div class="activity-icon">
-                      <i class="activity-type-icon">
-                        {activity.type === 'task_created' ? '📝' : 
-                         activity.type === 'comment_added' ? '💬' : 
-                         activity.type === 'attachment_added' ? '📎' : '🔄'}
-                      </i>
-                    </div>
-                    
-                    <div class="activity-details">
-                      <div class="activity-header">
-                        <span class="user-name">{activity.userName}</span>
-                        <span class="activity-action"> 
-                          {activity.type === 'task_created' ? 'creó una nueva tarea' : 
-                           activity.type === 'comment_added' ? 'comentó en' : 
-                           activity.type === 'attachment_added' ? 'adjuntó un archivo a' : 'actualizó'}
-                        </span>
-                        <span class="task-name">{activity.title}</span>
-                        <span>en</span>
-                        <span class="project-name">{activity.projectName}</span>
-                      </div>
-                      
-                      <div class="activity-time">
-                        {getRelativeTime(activity.timestamp)}
-                      </div>
-                    </div>
-                  </div>
-                {/each}
-              </div>
-            </div>
-          </div>
-          
-          <!-- Fila 5: Tareas pendientes -->
-          <div class="detail-card pending-tasks">
+        </div>
+        
+        <!-- Fila 4: Proyectos activos y actividad reciente -->
+        <div class="detail-row">
+          <div class="detail-card project-list">
             <div class="card-header">
-              <h3 class="card-title">Tareas Pendientes</h3>
-              <a href="#ver-todas" class="view-all">Ver todas</a>
+              <h3 class="card-title">Proyectos Activos</h3>
+              <a href="#ver-todos" class="view-all">Ver todos</a>
             </div>
             
-            <div class="tasks-container">
-              {#each dashboardData.pendingTasks.tasks as task}
-                <div class="task-item">
-                  <div class="task-header">
-                    <h4 class="task-title">{task.title}</h4>
-                    <span class={`priority-badge ${getPriorityClass(task.priority)}`}>{task.priority}</span>
-                  </div>
-                  
-                  <div class="task-meta">
-                    <div class="task-project">
-                      <i class="folder-icon">📁</i>
-                      <span>{task.project.name}</span>
+            <div class="projects-container">
+              {#each dashboardData.activeProjects.projects as project}
+                <div class="project-item">
+                  <div class="project-details">
+                    <h4 class="project-name">{project.name}</h4>
+                    <p class="project-description">{project.description || ''}</p>
+                    
+                    <div class="project-meta">
+                      <span class="meta-item"><i class="meta-icon">📝</i> {project.taskCount} tareas</span>
+                      <span class="meta-item"><i class="meta-icon">👥</i> {project.memberCount} miembros</span>
                     </div>
                     
-                    <div class="task-due-date">
-                      {#if task.dueDate}
-                        <i class="calendar-icon">📅</i>
-                        <span>{new Date(task.dueDate).toLocaleDateString('es-ES', {day: '2-digit', month: 'long', year: 'numeric'})}</span>
-                      {:else}
-                        <i class="calendar-icon">📅</i>
-                        <span>Sin fecha</span>
-                      {/if}
+                    <div class="progress-bar">
+                      <div class="progress" style="width: {(project.taskCount > 0) ? '75%' : '10%'};"></div>
                     </div>
                   </div>
                   
-                  <div class="task-footer">
-                    <div class="task-assignee">
-                      {#if task.assignee}
-                        <div class="avatar">
-                          {getInitials(task.assignee.firstName, task.assignee.lastName)}
-                        </div>
-                        <span>{task.assignee.firstName} {task.assignee.lastName}</span>
-                      {:else}
-                        <span class="unassigned">Sin asignar</span>
-                      {/if}
+                  <div class="project-info">
+                    <span class={`status-badge ${project.status.toLowerCase()}`}>{project.status}</span>
+                  </div>
+                  
+                  <div class="project-owner">
+                    <div class="avatar">
+                      {getInitials(project.owner.firstName, project.owner.lastName)}
+                    </div>
+                    <span class="owner-name">{project.owner.firstName} {project.owner.lastName}</span>
+                  </div>
+                </div>
+              {/each}
+              
+              <button class="create-project-btn" on:click|preventDefault={() => onNavigate('/crear-proyecto')}>
+                <i class="add-icon">+</i> Crear Proyecto
+              </button>
+            </div>
+          </div>
+          
+          <div class="detail-card activity-list">
+            <div class="card-header">
+              <h3 class="card-title">Actividad Reciente</h3>
+            </div>
+            
+            <div class="activities-container">
+              {#each dashboardData.recentActivity.activities as activity}
+                <div class="activity-item">
+                  <div class="activity-icon">
+                    <i class="activity-type-icon">
+                      {activity.type === 'task_created' ? '📝' : 
+                       activity.type === 'comment_added' ? '💬' : 
+                       activity.type === 'attachment_added' ? '📎' : '🔄'}
+                    </i>
+                  </div>
+                  
+                  <div class="activity-details">
+                    <div class="activity-header">
+                      <span class="user-name">{activity.userName}</span>
+                      <span class="activity-action"> 
+                        {activity.type === 'task_created' ? 'creó una nueva tarea' : 
+                         activity.type === 'comment_added' ? 'comentó en' : 
+                         activity.type === 'attachment_added' ? 'adjuntó un archivo a' : 'actualizó'}
+                      </span>
+                      <span class="task-name">{activity.type === 'task_created' || activity.type === 'task_updated' ? activity.title : activity.taskTitle}</span>
+                      <span>en</span>
+                      <span class="project-name">{activity.projectName}</span>
                     </div>
                     
-                    <span class={`status-badge ${getStatusClass(task.status)}`}>{task.status}</span>
+                    <div class="activity-time">
+                      {getRelativeTime(activity.timestamp)}
+                    </div>
                   </div>
                 </div>
               {/each}
             </div>
           </div>
-        {/if}
-      </div>
-    </main>
-  </div>
-  
+        </div>
+        
+        <!-- Fila 5: Tareas pendientes -->
+        <div class="detail-card pending-tasks">
+          <div class="card-header">
+            <h3 class="card-title">Tareas Pendientes</h3>
+            <a href="#ver-todas" class="view-all" on:click|preventDefault={() => onNavigate('/tareas')}>Ver todas</a>
+          </div>
+          
+          <div class="tasks-container">
+            {#each dashboardData.pendingTasks.tasks as task}
+              <div class="task-item" on:click={() => handleTaskClick(task.id)}>
+                <div class="task-header">
+                  <h4 class="task-title">{task.title}</h4>
+                  <span class={`priority-badge ${getPriorityClass(task.priority)}`}>{task.priority}</span>
+                </div>
+                
+                <div class="task-meta">
+                  <div class="task-project">
+                    <i class="folder-icon">📁</i>
+                    <span>{task.project.name}</span>
+                  </div>
+                  
+                  <div class="task-due-date">
+                    {#if task.dueDate}
+                      <i class="calendar-icon">📅</i>
+                      <span>{new Date(task.dueDate).toLocaleDateString('es-ES', {day: '2-digit', month: 'long', year: 'numeric'})}</span>
+                    {:else}
+                      <i class="calendar-icon">📅</i>
+                      <span>Sin fecha</span>
+                    {/if}
+                  </div>
+                </div>
+                
+                <div class="task-footer">
+                  <div class="task-assignee">
+                    {#if task.assignee}
+                      <div class="avatar">
+                        {getInitials(task.assignee.firstName, task.assignee.lastName)}
+                      </div>
+                      <span>{task.assignee.firstName} {task.assignee.lastName}</span>
+                    {:else}
+                      <span class="unassigned">Sin asignar</span>
+                    {/if}
+                  </div>
+                  
+                  <span class={`status-badge ${getStatusClass(task.status)}`}>{task.status}</span>
+                </div>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+    </div>
+  </main>
+
+  <!-- Mantenemos tu implementación local en caso de que App.svelte no gestione el modal -->
+  {#if showTaskDetail && selectedTaskId && typeof onOpenTask !== 'function'}
+    <div style="z-index:2000;">
+      <svelte:component this={DetalleTarea} 
+        taskId={selectedTaskId} 
+        onClose={handleCloseTaskDetail}
+        onSuccess={() => {
+          handleCloseTaskDetail();
+          loadDashboardData(); // Recargamos los datos al actualizar
+        }}
+      />
+    </div>
+  {/if}
+</div>
+
+
   <style>
     :global(body) {
       margin: 0;

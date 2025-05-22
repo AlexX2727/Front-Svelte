@@ -5,11 +5,17 @@
   import Perfil from './components/Perfil.svelte';
   import MisProyectos from './components/MisProyectos.svelte';
   import CrearProyecto from './components/CrearProyecto.svelte';
+  import EditProjectModal from './components/EditProjectModal.svelte';
+  import ListadoTareas from './components/ListadoTareas.svelte';
+  import DetalleTareaModal from './components/DetalleTareaModal.svelte';
   
   let currentRoute = '/login';
   let showPerfilModal = false;
   let showProyectosModal = false;
   let showCrearProyectoModal = false;
+  let showTaskDetail = false;
+  let showTaskListModal = false; // Nuevo estado para el modal de listado de tareas
+  let selectedTaskId: number | null = null;
   
   onMount(() => {
     const token = localStorage.getItem('token');
@@ -26,9 +32,35 @@
       showProyectosModal = true;
     } else if (route === '/crear-proyecto') {
       showCrearProyectoModal = true;
+    } else if (route === '/tareas') {
+      showTaskListModal = true; // Cambiado para mostrar como modal
     } else {
       currentRoute = route;
     }
+  }
+  
+  function handleTaskClick(taskId: number) {
+    selectedTaskId = taskId;
+    showTaskDetail = true;
+  }
+  
+  let showEditProjectModal = false;
+  let selectedProjectId: number | null = null;
+
+  function handleEditProject(id: number) {
+    selectedProjectId = id;
+    showEditProjectModal = true;
+  }
+
+  function handleCloseTask() {
+    showTaskDetail = false;
+    selectedTaskId = null;
+  }
+
+  function handleTaskUpdated() {
+    showTaskDetail = false;
+    selectedTaskId = null;
+    // Aquí podrías agregar lógica adicional para actualizar la lista de tareas
   }
 </script>
 
@@ -37,31 +69,6 @@
     <Login onNavigate={navigateTo} />
   {:else if currentRoute === '/principal'}
     <Principal onNavigate={navigateTo} />
-    {#if showPerfilModal}
-      <div class="modal-overlay">
-        <div class="modal-container">
-          <button class="close-modal" on:click={() => showPerfilModal = false}>×</button>
-          <Perfil onNavigate={navigateTo} />
-        </div>
-      </div>
-    {/if}
-    {#if showProyectosModal}
-      <div class="modal-overlay">
-        <div class="modal-container">
-          <button class="close-modal" on:click={() => showProyectosModal = false}>×</button>
-          <MisProyectos onNavigate={navigateTo} />
-        </div>
-      </div>
-    {/if}
-    {#if showCrearProyectoModal}
-      <CrearProyecto
-        onClose={() => showCrearProyectoModal = false}
-        onSuccess={() => {
-          showCrearProyectoModal = false;
-          // Aquí puedes agregar la lógica para actualizar la lista de proyectos
-        }}
-      />
-    {/if}
   {:else}
     <div class="error-page">
       <h2>Ruta no encontrada: {currentRoute}</h2>
@@ -69,6 +76,62 @@
     </div>
   {/if}
 </main>
+
+<!-- Modales globales -->
+{#if showPerfilModal}
+  <div class="modal-overlay">
+    <div class="modal-container">
+      <button class="close-modal" on:click={() => showPerfilModal = false}>×</button>
+      <Perfil onNavigate={navigateTo} />
+    </div>
+  </div>
+{/if}
+
+{#if showProyectosModal}
+  <div class="modal-overlay">
+    <div class="modal-container">
+      <button class="close-modal" on:click={() => showProyectosModal = false}>×</button>
+      <MisProyectos 
+        onNavigate={navigateTo}
+        onEditProject={handleEditProject}
+      />
+    </div>
+  </div>
+{/if}
+
+{#if showCrearProyectoModal}
+  <CrearProyecto
+    onClose={() => showCrearProyectoModal = false}
+    onSuccess={() => {
+      showCrearProyectoModal = false;
+    }}
+  />
+{/if}
+
+{#if showEditProjectModal && selectedProjectId}
+  <EditProjectModal
+    projectId={selectedProjectId}
+    onClose={() => {
+      showEditProjectModal = false;
+      selectedProjectId = null;
+    }}
+    onSuccess={() => {
+      showEditProjectModal = false;
+      selectedProjectId = null;
+      showProyectosModal = false;
+      setTimeout(() => showProyectosModal = true, 0);
+    }}
+  />
+{/if}
+
+{#if showTaskListModal}
+  <div class="modal-overlay">
+    <div class="modal-container">
+      <button class="close-modal" on:click={() => showTaskListModal = false}>×</button>
+      <ListadoTareas onTaskClick={handleTaskClick} />
+    </div>
+  </div>
+{/if}
 
 <style>
   :global(body) {
