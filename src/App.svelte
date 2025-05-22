@@ -7,14 +7,15 @@
   import CrearProyecto from './components/CrearProyecto.svelte';
   import EditProjectModal from './components/EditProjectModal.svelte';
   import ListadoTareas from './components/ListadoTareas.svelte';
-  import DetalleTareaModal from './components/DetalleTareaModal.svelte';
+  // Usa el nuevo modal de detalle de tareas
+  import TaskDetailModal from './components/TaskDetailModal.svelte';
   
   let currentRoute = '/login';
   let showPerfilModal = false;
   let showProyectosModal = false;
   let showCrearProyectoModal = false;
   let showTaskDetail = false;
-  let showTaskListModal = false; // Nuevo estado para el modal de listado de tareas
+  let showTaskListModal = false; 
   let selectedTaskId: number | null = null;
   
   onMount(() => {
@@ -33,7 +34,7 @@
     } else if (route === '/crear-proyecto') {
       showCrearProyectoModal = true;
     } else if (route === '/tareas') {
-      showTaskListModal = true; // Cambiado para mostrar como modal
+      showTaskListModal = true;
     } else {
       currentRoute = route;
     }
@@ -42,6 +43,8 @@
   function handleTaskClick(taskId: number) {
     selectedTaskId = taskId;
     showTaskDetail = true;
+    // Cerrar el modal de listado de tareas cuando se abre el detalle
+    showTaskListModal = false;
   }
   
   let showEditProjectModal = false;
@@ -55,12 +58,22 @@
   function handleCloseTask() {
     showTaskDetail = false;
     selectedTaskId = null;
+    // Opcional: volver a mostrar la lista de tareas
+    // showTaskListModal = true;
   }
 
   function handleTaskUpdated() {
     showTaskDetail = false;
     selectedTaskId = null;
-    // Aquí podrías agregar lógica adicional para actualizar la lista de tareas
+    // Opcional: volver a mostrar la lista de tareas actualizada
+    // showTaskListModal = true;
+  }
+
+  function handleTaskDeleted() {
+    showTaskDetail = false;
+    selectedTaskId = null;
+    // Opcional: volver a mostrar la lista de tareas
+    // showTaskListModal = true;
   }
 </script>
 
@@ -131,6 +144,17 @@
       <ListadoTareas onTaskClick={handleTaskClick} />
     </div>
   </div>
+{/if}
+
+<!-- Modal de detalle de tarea -->
+{#if showTaskDetail && selectedTaskId}
+  <TaskDetailModal
+    isOpen={showTaskDetail}
+    taskId={selectedTaskId}
+    onClose={handleCloseTask}
+    onTaskUpdated={handleTaskUpdated}
+    onTaskDeleted={handleTaskDeleted}
+  />
 {/if}
 
 <style>

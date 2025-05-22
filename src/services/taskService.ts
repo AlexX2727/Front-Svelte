@@ -1,80 +1,158 @@
-import axios from 'axios';
+// lib/services/taskService.ts
+import api from '../lib/api';
+import type { Task, CreateTaskRequest, UpdateTaskRequest, User, TaskFilters } from '../lib/types/task';
 
-// Configuración base de axios
-const API_URL = 'http://localhost:3000'; // Ajusta esta URL según donde esté ejecutándose tu API NestJS
-const apiClient = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
-
-// Interfaz para el modelo de Tarea
-export interface Task {
-  id?: number;
-  title: string;
-  description?: string;
-  completed: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-// Clase de servicio para operaciones CRUD de tareas
+/**
+ * Servicio para gestionar tareas
+ */
 export class TaskService {
-  // Obtener todas las tareas
-  async getTasks(): Promise<Task[]> {
+  private static getAuthHeaders() {
+    const token = localStorage.getItem('token');
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+  }
+
+  /**
+   * Obtener todas las tareas
+   */
+  static async getAllTasks(): Promise<Task[]> {
     try {
-      const response = await apiClient.get('/tasks');
+      const response = await api.get('/tasks', {
+        headers: this.getAuthHeaders()
+      });
       return response.data;
     } catch (error) {
-      console.error('Error fetching tasks:', error);
+      console.error('Error al obtener todas las tareas:', error);
       throw error;
     }
   }
 
-  // Obtener una tarea por ID
-  async getTaskById(id: number): Promise<Task> {
+  /**
+   * Obtener tareas con filtros
+   */
+  static async getTasksWithFilters(filters: TaskFilters): Promise<Task[]> {
     try {
-      const response = await apiClient.get(`/tasks/${id}`);
+      const params = new URLSearchParams();
+      
+      if (filters.projectId) params.append('projectId', filters.projectId.toString());
+      if (filters.assigneeId) params.append('assigneeId', filters.assigneeId.toString());
+      if (filters.myTasks) params.append('myTasks', 'true');
+      if (filters.status) params.append('status', filters.status);
+      if (filters.priority) params.append('priority', filters.priority);
+
+      const response = await api.get(`/tasks/filter?${params.toString()}`, {
+        headers: this.getAuthHeaders()
+      });
       return response.data;
     } catch (error) {
-      console.error(`Error fetching task with id ${id}:`, error);
+      console.error('Error al obtener tareas filtradas:', error);
       throw error;
     }
   }
 
-  // Crear una nueva tarea
-  async createTask(task: Omit<Task, 'id'>): Promise<Task> {
+  /**
+   * Obtener una tarea por ID
+   */
+  static async getTaskById(id: number): Promise<Task> {
     try {
-      const response = await apiClient.post('/tasks', task);
+      const response = await api.get(`/tasks/${id}`, {
+        headers: this.getAuthHeaders()
+      });
       return response.data;
     } catch (error) {
-      console.error('Error creating task:', error);
+      console.error(`Error al obtener tarea ${id}:`, error);
       throw error;
     }
   }
 
-  // Actualizar una tarea existente
-  async updateTask(id: number, task: Partial<Task>): Promise<Task> {
+  /**
+   * Crear una nueva tarea
+   */
+  static async createTask(taskData: CreateTaskRequest): Promise<Task> {
     try {
-      const response = await apiClient.patch(`/tasks/${id}`, task);
+      const response = await api.post('/tasks', taskData, {
+        headers: this.getAuthHeaders()
+      });
       return response.data;
     } catch (error) {
-      console.error(`Error updating task with id ${id}:`, error);
+      console.error('Error al crear tarea:', error);
       throw error;
     }
   }
 
-  // Eliminar una tarea
-  async deleteTask(id: number): Promise<void> {
+  /**
+   * Actualizar una tarea
+   */
+  static async updateTask(id: number, taskData: UpdateTaskRequest): Promise<Task> {
     try {
-      await apiClient.delete(`/tasks/${id}`);
+      const response = await api.patch(`/tasks/${id}`, taskData, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
     } catch (error) {
-      console.error(`Error deleting task with id ${id}:`, error);
+      console.error(`Error al actualizar tarea ${id}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Eliminar una tarea
+   */
+  static async deleteTask(id: number): Promise<void> {
+    try {
+      await api.delete(`/tasks/${id}`, {
+        headers: this.getAuthHeaders()
+      });
+    } catch (error) {
+      console.error(`Error al eliminar tarea ${id}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtener tareas por proyecto
+   */
+  static async getTasksByProject(projectId: number): Promise<Task[]> {
+    try {
+      const response = await api.get(`/tasks/project/${projectId}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error al obtener tareas del proyecto ${projectId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtener tareas asignadas a un usuario
+   */
+  static async getTasksByAssignee(userId: number): Promise<Task[]> {
+    try {
+      const response = await api.get(`/tasks/assignee/${userId}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error al obtener tareas del usuario ${userId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtener miembros de un proyecto para asignación
+   */
+  static async getProjectMembers(projectId: number): Promise<User[]> {
+    try {
+      const response = await api.get(`/tasks/project/${projectId}/members`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error al obtener miembros del proyecto ${projectId}:`, error);
       throw error;
     }
   }
 }
-
-// Instancia del servicio para usar en los componentes
-export const taskService = new TaskService();
