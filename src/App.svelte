@@ -9,6 +9,7 @@
   import ListadoTareas from './components/ListadoTareas.svelte';
   // Usa el nuevo modal de detalle de tareas
   import TaskDetailModal from './components/TaskDetailModal.svelte';
+  import CreateTaskModal from './components/CreateTaskModal.svelte';
   
   let currentRoute = '/login';
   let showPerfilModal = false;
@@ -16,6 +17,7 @@
   let showCrearProyectoModal = false;
   let showTaskDetail = false;
   let showTaskListModal = false; 
+  let showCreateTaskModal = false;
   let selectedTaskId: number | null = null;
   
   onMount(() => {
@@ -35,6 +37,8 @@
       showCrearProyectoModal = true;
     } else if (route === '/tareas') {
       showTaskListModal = true;
+    } else if (route === '/crear-tarea') {
+      showCreateTaskModal = true;
     } else {
       currentRoute = route;
     }
@@ -73,6 +77,12 @@
     showTaskDetail = false;
     selectedTaskId = null;
     // Opcional: volver a mostrar la lista de tareas
+    // showTaskListModal = true;
+  }
+
+  function handleTaskCreated() {
+    showCreateTaskModal = false;
+    // Opcional: mostrar la lista de tareas actualizada
     // showTaskListModal = true;
   }
 </script>
@@ -144,6 +154,15 @@
       <ListadoTareas onTaskClick={handleTaskClick} />
     </div>
   </div>
+{/if}
+
+<!-- Modal de crear tarea -->
+{#if showCreateTaskModal}
+  <CreateTaskModal
+    isOpen={showCreateTaskModal}
+    onClose={() => showCreateTaskModal = false}
+    onTaskCreated={handleTaskCreated}
+  />
 {/if}
 
 <!-- Modal de detalle de tarea -->

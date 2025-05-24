@@ -2,6 +2,7 @@
     import { onMount } from 'svelte';
     import api from '../lib/api';
     import { TaskService } from '../services/taskService';
+    import CreateTaskModal from './CreateTaskModal.svelte';
     import type { Task, Project, TaskFilters, TaskStatus, TaskPriority } from '../lib/types/task';
 
     // Props
@@ -20,6 +21,7 @@
     let selectedAssignee: number | null = null;
     let searchTerm = '';
     let showMyTasks = false;
+    let showCreateModal = false;
 
     // Función para cargar datos
     async function loadData() {
@@ -79,6 +81,12 @@
     // Función para manejar clic en tarea
     function handleTaskClick(taskId: number) {
         onTaskClick(taskId);
+    }
+
+    // Función para manejar creación exitosa de tarea
+    function handleTaskCreated() {
+        showCreateModal = false;
+        loadData(); // Recargar la lista de tareas
     }
 
     // Recargar datos cuando cambien los filtros
@@ -147,6 +155,21 @@
 </script>
 
 <div class="tareas-container">
+    <!-- Header con título y botón de crear -->
+    <div class="header-section">
+        <div class="header-content">
+            <h1 class="page-title">📋 Gestión de Tareas</h1>
+            <button 
+                class="create-btn"
+                on:click={() => showCreateModal = true}
+                disabled={loading}
+            >
+                <span class="btn-icon">+</span>
+                Nueva Tarea
+            </button>
+        </div>
+    </div>
+
     <div class="filtros">
         <div class="filtros-row">
             <input 
@@ -290,12 +313,78 @@
     {/if}
 </div>
 
+<!-- Modal de crear tarea -->
+<CreateTaskModal
+    bind:isOpen={showCreateModal}
+    onClose={() => showCreateModal = false}
+    onTaskCreated={handleTaskCreated}
+/>
+
 <style>
     .tareas-container {
         padding: 24px;
         background-color: #1a1a1a;
         border-radius: 12px;
         min-height: 80vh;
+    }
+
+    .header-section {
+        margin-bottom: 24px;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #242424;
+        padding: 20px 24px;
+        border-radius: 12px;
+        border: 1px solid #333;
+    }
+
+    .page-title {
+        margin: 0;
+        color: #ffffff;
+        font-size: 1.5rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .create-btn {
+        background: linear-gradient(135deg, #3498db, #2ecc71);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+    }
+
+    .create-btn:hover:not(:disabled) {
+        background: linear-gradient(135deg, #2980b9, #27ae60);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+    }
+
+    .create-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .btn-icon {
+        font-size: 18px;
+        font-weight: bold;
+        line-height: 1;
     }
 
     .filtros {
@@ -594,6 +683,21 @@
     }
 
     @media (max-width: 768px) {
+        .header-content {
+            flex-direction: column;
+            gap: 16px;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 1.25rem;
+        }
+
+        .create-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
         .filtros-row {
             flex-direction: column;
             align-items: stretch;
