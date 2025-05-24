@@ -206,6 +206,88 @@
         display: flex;
         align-items: center;
         margin-bottom: 12px;
+        position: relative;
+    }
+
+    .comment-meta {
+        flex: 1;
+    }
+
+    .comment-actions {
+        display: flex;
+        gap: 4px;
+        margin-left: 8px;
+    }
+
+    .action-btn {
+        background: none;
+        border: 1px solid transparent;
+        color: #a4b0be;
+        cursor: pointer;
+        padding: 4px 6px;
+        border-radius: 4px;
+        font-size: 12px;
+        transition: all 0.2s ease;
+        min-width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .action-btn:hover:not(:disabled) {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .action-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .edit-btn:hover:not(:disabled) {
+        color: #3498db;
+        border-color: #3498db;
+    }
+
+    .delete-btn:hover:not(:disabled) {
+        color: #ff4757;
+        border-color: #ff4757;
+    }
+
+    .delete-btn.confirm {
+        background-color: #ff4757;
+        color: white;
+        border-color: #ff4757;
+    }
+
+    .save-btn:hover:not(:disabled) {
+        color: #2ed573;
+        border-color: #2ed573;
+    }
+
+    .cancel-btn:hover:not(:disabled) {
+        color: #ff6b35;
+        border-color: #ff6b35;
+    }
+
+    .edit-comment-textarea {
+        width: 100%;
+        min-height: 60px;
+        padding: 8px;
+        border: 1px solid #363636;
+        border-radius: 4px;
+        background-color: #1a1a1a;
+        color: #ffffff;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        transition: border-color 0.2s ease;
+    }
+
+    .edit-comment-textarea:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
     }
 
     .user-avatar {
@@ -445,6 +527,26 @@
         font-size: 12px;
     }
 
+    .btn-danger {
+        background-color: #ff4757;
+        color: white;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+        background-color: #ff3742;
+    }
+
+    .btn-danger.confirm {
+        background-color: #ff3742;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
     .modal-footer {
         display: flex;
         justify-content: flex-end;
@@ -491,6 +593,12 @@
             flex-direction: column;
             align-items: flex-start;
             gap: 8px;
+        }
+
+        .comment-actions {
+            align-self: flex-end;
+            margin-left: 0;
+            margin-top: 8px;
         }
 
         .user-avatar {
@@ -579,6 +687,12 @@
     let showSuccessMessage = false;
     let successMessage = '';
     let downloadLoading = false;
+
+    // Estados para edición
+    let editingCommentId: number | null = null;
+    let editCommentText = '';
+    let deletingCommentId: number | null = null;
+    let deletingAttachmentId: number | null = null;
 
     // Obtener usuario del localStorage
     const storedUser = localStorage.getItem("user");
@@ -751,6 +865,115 @@
         setTimeout(() => showSuccessMessage = false, 3000);
     }
 
+    // Iniciar edición de comentario
+    function startEditComment(comment: Comment) {
+        editingCommentId = comment.id;
+        editCommentText = comment.content;
+    }
+
+    // Cancelar edición de comentario
+    function cancelEditComment() {
+        editingCommentId = null;
+        editCommentText = '';
+    }
+
+    // Guardar comentario editado
+    async function saveEditComment() {
+        if (!editingCommentId || !editCommentText.trim()) return;
+
+        try {
+            loading = true;
+            error = null;
+
+            const response = await api.patch(`/comments/${editingCommentId}`, {
+                content: editCommentText.trim()
+            }, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+
+            // Actualizar el comentario en la lista
+            comments = comments.map(comment => 
+                comment.id === editingCommentId ? response.data : comment
+            );
+
+            // Limpiar estado de edición
+            editingCommentId = null;
+            editCommentText = '';
+
+            showSuccess('Comentario actualizado correctamente');
+        } catch (err) {
+            console.error('Error al actualizar comentario:', err);
+            error = 'Error al actualizar el comentario. Por favor, inténtalo de nuevo.';
+        } finally {
+            loading = false;
+        }
+    }
+
+    // Eliminar comentario
+    async function deleteComment(commentId: number) {
+        if (deletingCommentId === commentId) {
+            // Confirmar eliminación
+            try {
+                loading = true;
+                error = null;
+
+                await api.delete(`/comments/${commentId}`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                // Remover comentario de la lista
+                comments = comments.filter(comment => comment.id !== commentId);
+                deletingCommentId = null;
+
+                showSuccess('Comentario eliminado correctamente');
+            } catch (err) {
+                console.error('Error al eliminar comentario:', err);
+                error = 'Error al eliminar el comentario. Por favor, inténtalo de nuevo.';
+                deletingCommentId = null;
+            } finally {
+                loading = false;
+            }
+        } else {
+            // Solicitar confirmación
+            deletingCommentId = commentId;
+        }
+    }
+
+    // Eliminar archivo adjunto
+    async function deleteAttachment(attachmentId: number) {
+        if (deletingAttachmentId === attachmentId) {
+            // Confirmar eliminación
+            try {
+                loading = true;
+                error = null;
+
+                await api.delete(`/comments/attachments/${attachmentId}`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                // Remover archivo de la lista
+                attachments = attachments.filter(attachment => attachment.id !== attachmentId);
+                deletingAttachmentId = null;
+
+                showSuccess('Archivo eliminado correctamente');
+            } catch (err) {
+                console.error('Error al eliminar archivo:', err);
+                error = 'Error al eliminar el archivo. Por favor, inténtalo de nuevo.';
+                deletingAttachmentId = null;
+            } finally {
+                loading = false;
+            }
+        } else {
+            // Solicitar confirmación
+            deletingAttachmentId = attachmentId;
+        }
+    }
+
+    // Verificar si el usuario puede editar/eliminar
+    function canEditDelete(itemUserId: number): boolean {
+        return userId === itemUserId;
+    }
+
     // Obtener URL de descarga
     function getDownloadUrl(url: string, attachment: Attachment): string {
         if (!url) return '';
@@ -917,6 +1140,10 @@
         selectedFile = null;
         error = null;
         showSuccessMessage = false;
+        editingCommentId = null;
+        editCommentText = '';
+        deletingCommentId = null;
+        deletingAttachmentId = null;
         onClose();
     }
 
@@ -933,6 +1160,10 @@
         selectedFile = null;
         error = null;
         showSuccessMessage = false;
+        editingCommentId = null;
+        editCommentText = '';
+        deletingCommentId = null;
+        deletingAttachmentId = null;
     }
 </script>
 
@@ -1021,9 +1252,58 @@
                                                         <h6>{getUserName(comment.user)}</h6>
                                                         <small>{formatDateTime(comment.createdAt)}</small>
                                                     </div>
+                                                    {#if canEditDelete(comment.user_id)}
+                                                        <div class="comment-actions">
+                                                            {#if editingCommentId === comment.id}
+                                                                <button 
+                                                                    class="action-btn save-btn"
+                                                                    on:click={saveEditComment}
+                                                                    disabled={loading || !editCommentText.trim()}
+                                                                    title="Guardar"
+                                                                >
+                                                                    ✓
+                                                                </button>
+                                                                <button 
+                                                                    class="action-btn cancel-btn"
+                                                                    on:click={cancelEditComment}
+                                                                    disabled={loading}
+                                                                    title="Cancelar"
+                                                                >
+                                                                    ✕
+                                                                </button>
+                                                            {:else}
+                                                                <button 
+                                                                    class="action-btn edit-btn"
+                                                                    on:click={() => startEditComment(comment)}
+                                                                    disabled={loading}
+                                                                    title="Editar"
+                                                                >
+                                                                    ✏️
+                                                                </button>
+                                                                <button 
+                                                                    class="action-btn delete-btn"
+                                                                    class:confirm={deletingCommentId === comment.id}
+                                                                    on:click={() => deleteComment(comment.id)}
+                                                                    disabled={loading}
+                                                                    title={deletingCommentId === comment.id ? 'Confirmar eliminación' : 'Eliminar'}
+                                                                >
+                                                                    {deletingCommentId === comment.id ? '⚠️' : '🗑️'}
+                                                                </button>
+                                                            {/if}
+                                                        </div>
+                                                    {/if}
                                                 </div>
                                                 <div class="comment-content">
-                                                    <p>{comment.content}</p>
+                                                    {#if editingCommentId === comment.id}
+                                                        <textarea
+                                                            bind:value={editCommentText}
+                                                            class="edit-comment-textarea"
+                                                            rows="3"
+                                                            disabled={loading}
+                                                        ></textarea>
+                                                    {:else}
+                                                        <p>{comment.content}</p>
+                                                    {/if}
                                                 </div>
                                             </div>
                                         {/each}
@@ -1112,6 +1392,20 @@
                                                             disabled={downloadLoading}
                                                         >
                                                             Descargar
+                                                        </button>
+                                                    {/if}
+                                                    {#if canEditDelete(attachment.user_id)}
+                                                        <button 
+                                                            class="btn btn-sm btn-danger"
+                                                            class:confirm={deletingAttachmentId === attachment.id}
+                                                            on:click={() => deleteAttachment(attachment.id)}
+                                                            disabled={loading}
+                                                        >
+                                                            {#if deletingAttachmentId === attachment.id}
+                                                                ⚠️ Confirmar
+                                                            {:else}
+                                                                🗑️ Eliminar
+                                                            {/if}
                                                         </button>
                                                     {/if}
                                                 </div>
