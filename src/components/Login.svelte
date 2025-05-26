@@ -1,120 +1,133 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import api from '../lib/api';
-    
-    export let onNavigate: (route: string) => void;
+  import { onMount } from 'svelte';
+  import api from '../lib/api';
+  import RegisterModal from './RegisterModal.svelte';
   
-    let email = "";
-    let password = "";
-    let error = "";
-    let isLoading = false;
-    let mounted = false;
-    let formElement: HTMLFormElement;
-  
-    onMount(() => {
-      mounted = true;
-      return () => mounted = false;
-    });
-  
-    const handleLogin = async (e: SubmitEvent) => {
-      e.preventDefault();
-      error = "";
-      isLoading = true;
-  
-      try {
-        const res = await api.post("/auth/login", { email, password });
-        localStorage.setItem("token", res.data.acces_token);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
-        
-        // Pequeño retraso para mostrar la animación de carga
-        setTimeout(() => {
-          isLoading = false;
-          onNavigate("/principal");
-        }, 800);
-      } catch (err) {
+  export let onNavigate: (route: string) => void;
+
+  let email = "";
+  let password = "";
+  let error = "";
+  let isLoading = false;
+  let mounted = false;
+  let formElement: HTMLFormElement;
+  let showRegisterModal = false;
+
+  onMount(() => {
+    mounted = true;
+    return () => mounted = false;
+  });
+
+  const handleLogin = async (e: SubmitEvent) => {
+    e.preventDefault();
+    error = "";
+    isLoading = true;
+
+    try {
+      const res = await api.post("/auth/login", { email, password });
+      localStorage.setItem("token", res.data.acces_token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      
+      // Pequeño retraso para mostrar la animación de carga
+      setTimeout(() => {
         isLoading = false;
-        error = "Credenciales incorrectas";
-        
-        // Animación de error
-        formElement?.classList.add('shake');
-        setTimeout(() => {
-          formElement?.classList.remove('shake');
-        }, 500);
-      }
-    };
-  </script>
+        onNavigate("/principal");
+      }, 800);
+    } catch (err) {
+      isLoading = false;
+      error = "Credenciales incorrectas";
+      
+      // Animación de error
+      formElement?.classList.add('shake');
+      setTimeout(() => {
+        formElement?.classList.remove('shake');
+      }, 500);
+    }
+  };
   
-  <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #121212; padding: 20px; position: relative; overflow: hidden;">
-    <div class="particles-container"></div>
-    <div 
-      class={mounted ? "fadeIn" : ""} 
-      style="width: 100%; max-width: 380px; background-color: #1e1e1e; border-radius: 12px; padding: 30px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35); opacity: 0; transition: all 0.3s ease; display: flex; flex-direction: column; position: relative; z-index: 10; border: 1px solid rgba(52, 152, 219, 0.1);"
-    >
-      <div style="display: flex; justify-content: center; margin-bottom: 20px;">
-        <div style="display: flex; align-items: center; justify-content: center;" class="logo-icon">
-          <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle class="circle-animation" cx="25" cy="25" r="20" stroke="#3498db" stroke-width="2" />
-            <path class="check-animation" d="M16 25L22 31L34 19" stroke="#3498db" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-            <path class="gear-animation" d="M25 10V14M25 36V40M40 25H36M14 25H10M35.4 14.6L32.5 17.5M17.5 32.5L14.6 35.4M35.4 35.4L32.5 32.5M17.5 17.5L14.6 14.6" stroke="#3498db" stroke-width="2" stroke-linecap="round" />
-          </svg>
-        </div>
+  const openRegisterModal = () => {
+    showRegisterModal = true;
+  };
+</script>
+
+<div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #121212; padding: 20px; position: relative; overflow: hidden;">
+  <div class="particles-container"></div>
+  <div 
+    class={mounted ? "fadeIn" : ""} 
+    style="width: 100%; max-width: 380px; background-color: #1e1e1e; border-radius: 12px; padding: 30px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35); opacity: 0; transition: all 0.3s ease; display: flex; flex-direction: column; position: relative; z-index: 10; border: 1px solid rgba(52, 152, 219, 0.1);"
+  >
+    <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; justify-content: center;" class="logo-icon">
+        <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle class="circle-animation" cx="25" cy="25" r="20" stroke="#3498db" stroke-width="2" />
+          <path class="check-animation" d="M16 25L22 31L34 19" stroke="#3498db" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+          <path class="gear-animation" d="M25 10V14M25 36V40M40 25H36M14 25H10M35.4 14.6L32.5 17.5M17.5 32.5L14.6 35.4M35.4 35.4L32.5 32.5M17.5 17.5L14.6 14.6" stroke="#3498db" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </div>
+    </div>
+    
+    <h2 style="text-align: center; color: #ffffff; font-size: 22px; margin-bottom: 30px; font-weight: 500; letter-spacing: 0.5px;">Iniciar Sesión</h2>
+    
+    <form on:submit={handleLogin} bind:this={formElement} style="display: flex; flex-direction: column; gap: 20px;" class="login-form">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label for="email" style="font-size: 14px; color: #b0b0b0; font-weight: 500; margin-left: 2px;">Correo Electrónico</label>
+        <input
+          id="email"
+          type="email"
+          placeholder="tucorreo@ejemplo.com"
+          bind:value={email}
+          style="padding: 12px 16px; font-size: 15px; border: 1px solid #333333; border-radius: 8px; transition: all 0.3s ease; background-color: #252525; color: #ffffff; outline: none;"
+          required
+        />
       </div>
       
-      <h2 style="text-align: center; color: #ffffff; font-size: 22px; margin-bottom: 30px; font-weight: 500; letter-spacing: 0.5px;">Iniciar Sesión</h2>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label for="password" style="font-size: 14px; color: #b0b0b0; font-weight: 500; margin-left: 2px;">Contraseña</label>
+        <input
+          id="password"
+          type="password"
+          placeholder="Ingresa tu contraseña"
+          bind:value={password}
+          style="padding: 12px 16px; font-size: 15px; border: 1px solid #333333; border-radius: 8px; transition: all 0.3s ease; background-color: #252525; color: #ffffff; outline: none;"
+          required
+        />
+      </div>
       
-      <form on:submit={handleLogin} bind:this={formElement} style="display: flex; flex-direction: column; gap: 20px;" class="login-form">
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <label for="email" style="font-size: 14px; color: #b0b0b0; font-weight: 500; margin-left: 2px;">Correo Electrónico</label>
-          <input
-            id="email"
-            type="email"
-            placeholder="tucorreo@ejemplo.com"
-            bind:value={email}
-            style="padding: 12px 16px; font-size: 15px; border: 1px solid #333333; border-radius: 8px; transition: all 0.3s ease; background-color: #252525; color: #ffffff; outline: none;"
-            required
-          />
-        </div>
-        
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <label for="password" style="font-size: 14px; color: #b0b0b0; font-weight: 500; margin-left: 2px;">Contraseña</label>
-          <input
-            id="password"
-            type="password"
-            placeholder="Ingresa tu contraseña"
-            bind:value={password}
-            style="padding: 12px 16px; font-size: 15px; border: 1px solid #333333; border-radius: 8px; transition: all 0.3s ease; background-color: #252525; color: #ffffff; outline: none;"
-            required
-          />
-        </div>
-        
-        <button 
-          type="submit" 
-          style={`padding: 14px; background-color: #3498db; color: white; border: none; border-radius: 8px; cursor: ${isLoading ? 'not-allowed' : 'pointer'}; font-size: 16px; font-weight: 500; margin-top: 15px; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3); ${isLoading ? 'background-color: #2980b9; opacity: 0.8;' : ''}`}
-          disabled={isLoading}
-          class="glow-button"
-        >
-          {#if isLoading}
-            <span class="spinner"></span>
-          {:else}
-            Ingresar
-          {/if}
-        </button>
-        
-        {#if error}
-          <p style="color: #e74c3c; font-size: 14px; text-align: center; margin: 15px 0 5px; padding: 8px 12px; background-color: rgba(231, 76, 60, 0.1); border-radius: 6px; border: 1px solid rgba(231, 76, 60, 0.2);">{error}</p>
-        {/if}
-      </form>
-  
-      <button
-        type="button"
-        on:click={() => onNavigate("/register")}
-        style="margin-top: 25px; background-color: transparent; color: #b0b0b0; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s ease;"
-        class="register-button"
+      <button 
+        type="submit" 
+        style={`padding: 14px; background-color: #3498db; color: white; border: none; border-radius: 8px; cursor: ${isLoading ? 'not-allowed' : 'pointer'}; font-size: 16px; font-weight: 500; margin-top: 15px; transition: all 0.3s ease; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3); ${isLoading ? 'background-color: #2980b9; opacity: 0.8;' : ''}`}
+        disabled={isLoading}
+        class="glow-button"
       >
-        ¿No tienes cuenta? <span style="color: #3498db; font-weight: 500;">Crea una aquí</span>
+        {#if isLoading}
+          <span class="spinner"></span>
+        {:else}
+          Ingresar
+        {/if}
       </button>
-    </div>
+      
+      {#if error}
+        <p style="color: #e74c3c; font-size: 14px; text-align: center; margin: 15px 0 5px; padding: 8px 12px; background-color: rgba(231, 76, 60, 0.1); border-radius: 6px; border: 1px solid rgba(231, 76, 60, 0.2);">{error}</p>
+      {/if}
+    </form>
+
+    <button
+      type="button"
+      on:click={openRegisterModal}
+      style="margin-top: 25px; background-color: transparent; color: #b0b0b0; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s ease;"
+      class="register-button"
+    >
+      ¿No tienes cuenta? <span style="color: #3498db; font-weight: 500;">Crea una aquí</span>
+    </button>
   </div>
+</div>
+
+<RegisterModal 
+  bind:showModal={showRegisterModal} 
+  {onNavigate} 
+  on:close={() => showRegisterModal = false}
+/>
+
   
   <style>
     @keyframes fadeIn {
