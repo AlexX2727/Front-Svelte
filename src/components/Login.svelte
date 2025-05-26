@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import api from '../lib/api';
   import RegisterModal from './RegisterModal.svelte';
+  import ForgotPasswordModal from './ForgotPasswordModal.svelte';
   
   export let onNavigate: (route: string) => void;
 
@@ -12,6 +13,7 @@
   let mounted = false;
   let formElement: HTMLFormElement;
   let showRegisterModal = false;
+  let showForgotPasswordModal = false;
 
   onMount(() => {
     mounted = true;
@@ -47,6 +49,10 @@
   
   const openRegisterModal = () => {
     showRegisterModal = true;
+  };
+
+  const openForgotPasswordModal = () => {
+    showForgotPasswordModal = true;
   };
 </script>
 
@@ -109,12 +115,21 @@
       {#if error}
         <p style="color: #e74c3c; font-size: 14px; text-align: center; margin: 15px 0 5px; padding: 8px 12px; background-color: rgba(231, 76, 60, 0.1); border-radius: 6px; border: 1px solid rgba(231, 76, 60, 0.2);">{error}</p>
       {/if}
+
+      <button
+        type="button"
+        on:click={openForgotPasswordModal}
+        style="margin-top: 5px; background-color: transparent; color: #b0b0b0; border: none; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s ease;"
+        class="forgot-password-button"
+      >
+        ¿Olvidaste tu contraseña? <span style="color: #3498db; font-weight: 500;">Recupérala aquí</span>
+      </button>
     </form>
 
     <button
       type="button"
       on:click={openRegisterModal}
-      style="margin-top: 25px; background-color: transparent; color: #b0b0b0; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s ease;"
+      style="margin-top: 15px; background-color: transparent; color: #b0b0b0; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s ease;"
       class="register-button"
     >
       ¿No tienes cuenta? <span style="color: #3498db; font-weight: 500;">Crea una aquí</span>
@@ -126,6 +141,11 @@
   bind:showModal={showRegisterModal} 
   {onNavigate} 
   on:close={() => showRegisterModal = false}
+/>
+
+<ForgotPasswordModal 
+  bind:showModal={showForgotPasswordModal} 
+  on:close={() => showForgotPasswordModal = false}
 />
 
   
@@ -297,5 +317,8 @@
       border-radius: 50%;
       border-top-color: #fff;
       animation: spin 1s ease-in-out infinite;
+    }
+    .forgot-password-button:hover span {
+      text-decoration: underline;
     }
   </style>
