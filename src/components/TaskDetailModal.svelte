@@ -573,23 +573,35 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: rgba(15, 23, 42, 0.8);
         display: flex;
         justify-content: center;
         align-items: center;
         z-index: 1000;
-        backdrop-filter: blur(2px);
+        backdrop-filter: blur(4px);
     }
 
     .modal-content {
-        background: #1a1a1a;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         border-radius: 12px;
         width: 90%;
         max-width: 800px;
         max-height: 90vh;
         overflow-y: auto;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        border: 1px solid #333;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        animation: modalFadeIn 0.3s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .modal-header {
@@ -597,22 +609,23 @@
         justify-content: space-between;
         align-items: center;
         padding: 20px 24px;
-        border-bottom: 1px solid #333;
-        background: #242424;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(30, 41, 59, 0.8);
         border-radius: 12px 12px 0 0;
     }
 
     .modal-header h2 {
         margin: 0;
-        color: #ffffff;
+        color: #f8fafc;
         font-size: 1.25rem;
         font-weight: 600;
+        font-family: 'Inter', sans-serif;
     }
 
     .close-btn {
         background: none;
         border: none;
-        color: #a4b0be;
+        color: #94a3b8;
         font-size: 24px;
         cursor: pointer;
         padding: 0;
@@ -626,26 +639,26 @@
     }
 
     .close-btn:hover {
-        background-color: #ff4757;
-        color: white;
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
     }
 
     .modal-body {
         padding: 24px;
-        color: #ffffff;
+        color: #f8fafc;
     }
 
     .loading-container {
         text-align: center;
         padding: 40px;
-        color: #a4b0be;
+        color: #94a3b8;
     }
 
     .spinner {
         display: inline-block;
         width: 40px;
         height: 40px;
-        border: 3px solid #3498db;
+        border: 3px solid #3b82f6;
         border-radius: 50%;
         border-top-color: transparent;
         animation: spin 1s linear infinite;
@@ -657,11 +670,11 @@
     }
 
     .error-alert {
-        background: rgba(255, 71, 87, 0.1);
-        border: 1px solid #ff4757;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid #ef4444;
         border-radius: 8px;
         padding: 16px;
-        color: #ff4757;
+        color: #ef4444;
         margin-bottom: 16px;
     }
 
@@ -672,11 +685,11 @@
 
     .delete-confirmation p {
         margin: 8px 0;
-        color: #a4b0be;
+        color: #94a3b8;
     }
 
     .delete-confirmation strong {
-        color: #ffffff;
+        color: #f8fafc;
     }
 
     .form-group {
@@ -692,42 +705,44 @@
     .form-group label {
         display: block;
         margin-bottom: 6px;
-        color: #ffffff;
+        color: #f8fafc;
         font-weight: 500;
         font-size: 14px;
+        font-family: 'Inter', sans-serif;
     }
 
     .form-input, .form-textarea, .form-select {
         width: 100%;
         padding: 10px 12px;
-        border: 1px solid #363636;
+        border: 1px solid rgba(148, 163, 184, 0.3);
         border-radius: 6px;
-        background-color: #2a2a2a;
-        color: #ffffff;
+        background-color: rgba(15, 23, 42, 0.6);
+        color: #f8fafc;
         font-size: 14px;
-        transition: border-color 0.2s ease;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        font-family: 'Inter', sans-serif;
     }
 
     .form-input:focus, .form-textarea:focus, .form-select:focus {
         outline: none;
-        border-color: #3498db;
-        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
     }
 
     .form-input.disabled {
-        background-color: #1a1a1a;
-        color: #666;
+        background-color: rgba(15, 23, 42, 0.8);
+        color: #64748b;
         cursor: not-allowed;
     }
 
     .form-text {
         font-size: 12px;
-        color: #666;
+        color: #64748b;
         margin-top: 4px;
     }
 
     .detail-section {
-        color: #ffffff;
+        color: #f8fafc;
     }
 
     .detail-item {
@@ -743,18 +758,20 @@
 
     .detail-item h5 {
         margin: 0 0 8px 0;
-        color: #a4b0be;
+        color: #94a3b8;
         font-size: 14px;
         font-weight: 500;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        font-family: 'Inter', sans-serif;
     }
 
     .detail-item p {
         margin: 0;
-        color: #ffffff;
+        color: #f8fafc;
         font-size: 16px;
         line-height: 1.5;
+        font-family: 'Inter', sans-serif;
     }
 
     .estado-badge, .prioridad-badge {
@@ -765,51 +782,52 @@
         font-weight: 500;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        font-family: 'Inter', sans-serif;
     }
 
     .estado-pendiente {
-        background-color: #2f3542;
-        color: #dfe4ea;
+        background-color: rgba(71, 85, 105, 0.5);
+        color: #e2e8f0;
     }
 
     .estado-progreso {
-        background-color: #70a1ff;
-        color: #2f3542;
+        background-color: rgba(59, 130, 246, 0.5);
+        color: #e2e8f0;
     }
 
     .estado-revision {
-        background-color: #ffa502;
-        color: #2f3542;
+        background-color: rgba(245, 158, 11, 0.5);
+        color: #e2e8f0;
     }
 
     .estado-completado {
-        background-color: #2ed573;
-        color: white;
+        background-color: rgba(34, 197, 94, 0.5);
+        color: #e2e8f0;
     }
 
     .estado-bloqueado {
-        background-color: #ff4757;
-        color: white;
+        background-color: rgba(239, 68, 68, 0.5);
+        color: #e2e8f0;
     }
 
     .prioridad-baja {
-        background-color: #2ed573;
-        color: white;
+        background-color: rgba(34, 197, 94, 0.5);
+        color: #e2e8f0;
     }
 
     .prioridad-media {
-        background-color: #ffa502;
-        color: #2f3542;
+        background-color: rgba(245, 158, 11, 0.5);
+        color: #e2e8f0;
     }
 
     .prioridad-alta {
-        background-color: #ff6b35;
-        color: white;
+        background-color: rgba(249, 115, 22, 0.5);
+        color: #e2e8f0;
     }
 
     .prioridad-critica {
-        background-color: #ff4757;
-        color: white;
+        background-color: rgba(239, 68, 68, 0.5);
+        color: #e2e8f0;
     }
 
     .modal-footer {
@@ -817,8 +835,8 @@
         justify-content: flex-end;
         gap: 12px;
         padding: 16px 24px;
-        border-top: 1px solid #333;
-        background: #242424;
+        border-top: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(30, 41, 59, 0.8);
         border-radius: 0 0 12px 12px;
     }
 
@@ -834,6 +852,7 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
+        font-family: 'Inter', sans-serif;
     }
 
     .btn:disabled {
@@ -842,39 +861,39 @@
     }
 
     .btn-primary {
-        background-color: #3498db;
+        background-color: #3b82f6;
         color: white;
     }
 
     .btn-primary:hover:not(:disabled) {
-        background-color: #2980b9;
+        background-color: #2563eb;
     }
 
     .btn-secondary {
-        background-color: #6c757d;
+        background-color: #64748b;
         color: white;
     }
 
     .btn-secondary:hover:not(:disabled) {
-        background-color: #5a6268;
+        background-color: #475569;
     }
 
     .btn-danger {
-        background-color: #ff4757;
+        background-color: #ef4444;
         color: white;
     }
 
     .btn-danger:hover:not(:disabled) {
-        background-color: #ff3742;
+        background-color: #dc2626;
     }
 
     .btn-info {
-        background-color: #17a2b8;
+        background-color: #0ea5e9;
         color: white;
     }
 
     .btn-info:hover:not(:disabled) {
-        background-color: #138496;
+        background-color: #0284c7;
     }
 
     @media (max-width: 768px) {

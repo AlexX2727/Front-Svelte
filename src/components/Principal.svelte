@@ -3,6 +3,8 @@
   import api from '../lib/api';
   import { Chart, registerables } from 'chart.js';
   import ProjectMembersModal from './ProjectMembersModal.svelte';
+  import EditProjectModal from './EditProjectModal.svelte';
+  import AddMemberModal from './AddMemberModal.svelte';
   
   // Registrar todos los componentes de Chart.js
   Chart.register(...registerables);
@@ -18,6 +20,11 @@
   let showMembersModal = false;
   let showProjectSelector = false;
   let selectedProjectId = null;
+
+  // Variables para modales de proyectos
+  let showEditProjectModal = false;
+  let showAddMemberModal = false;
+  let selectedProjectForEdit = null;
 
   // Variables para el sistema de tabs
   let activeTab = 'dashboard'; // dashboard, projects, activity, tasks
@@ -70,6 +77,32 @@
   function handleCloseMembersModal() {
     showMembersModal = false;
     selectedProjectId = null;
+  }
+
+  // Funciones para manejar modales de proyectos
+  function handleEditProject(project) {
+    selectedProjectForEdit = project;
+    showEditProjectModal = true;
+  }
+
+  function handleAddMember(project) {
+    selectedProjectForEdit = project;
+    showAddMemberModal = true;
+  }
+
+  function handleCloseEditProject() {
+    showEditProjectModal = false;
+    selectedProjectForEdit = null;
+  }
+
+  function handleCloseAddMember() {
+    showAddMemberModal = false;
+    selectedProjectForEdit = null;
+  }
+
+  function handleProjectSuccess() {
+    // Recargar datos cuando se actualice un proyecto o se añada un miembro
+    loadDashboardData();
   }
   
   // Variables reactivas
@@ -1321,16 +1354,19 @@
                   </div>
                   
                   <div class="project-actions">
-                    <button class="action-btn view" on:click={() => onNavigate(`/proyecto/${project.id}`)}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                      </svg>
-                    </button>
-                    <button class="action-btn edit">
+                  
+                    <button class="action-btn edit" on:click|stopPropagation={() => handleEditProject(project)} title="Editar proyecto">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="action-btn add-member" on:click|stopPropagation={() => handleAddMember(project)} title="Añadir miembro">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="10" cy="7" r="4"/>
+                        <line x1="20" y1="8" x2="20" y2="14"/>
+                        <line x1="23" y1="11" x2="17" y2="11"/>
                       </svg>
                     </button>
                   </div>
@@ -1484,7 +1520,7 @@
                 <option value="medium">Media</option>
                 <option value="low">Baja</option>
               </select>
-              
+   
               
               <button class="refresh-btn-secondary" on:click={refreshTasks} disabled={isRefreshingTasks}>
                 {#if isRefreshingTasks}
@@ -1797,6 +1833,33 @@
         onSuccess={() => {
           handleCloseMembersModal();
           loadDashboardData();
+        }}
+      />
+    </div>
+  {/if}
+
+  <!-- Nuevos modales para proyectos -->
+  {#if showEditProjectModal && selectedProjectForEdit}
+    <div style="z-index:2001;">
+      <EditProjectModal
+        projectId={selectedProjectForEdit.id}
+        onClose={handleCloseEditProject}
+        onSuccess={() => {
+          handleCloseEditProject();
+          handleProjectSuccess();
+        }}
+      />
+    </div>
+  {/if}
+
+  {#if showAddMemberModal && selectedProjectForEdit}
+    <div style="z-index:2001;">
+      <AddMemberModal
+        projectId={selectedProjectForEdit.id}
+        onClose={handleCloseAddMember}
+        onSuccess={() => {
+          handleCloseAddMember();
+          handleProjectSuccess();
         }}
       />
     </div>
@@ -2842,6 +2905,12 @@
     border-color: rgba(245, 158, 11, 0.3);
     color: #f59e0b;
   }
+
+  .action-btn.add-member:hover {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #10b981;
+  }
   
   .create-project-btn {
     display: flex;
@@ -3366,17 +3435,25 @@
   }
   
   /* Responsive Design */
+  
+  /* Large desktops */
+  @media (max-width: 1600px) {
+    .charts-grid {
+      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    }
+  }
+  
   @media (max-width: 1400px) {
     .charts-grid {
       grid-template-columns: 1fr;
     }
     
     .projects-grid {
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     }
     
     .board-columns {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 20px;
     }
   }
@@ -3387,23 +3464,29 @@
     }
     
     .metrics-grid {
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     }
     
     .projects-grid {
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     }
   }
   
+  /* Tablets */
   @media (max-width: 992px) {
     .header {
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
       align-items: stretch;
+      padding: 16px 20px;
+    }
+    
+    .header-left .welcome h1 {
+      font-size: 24px;
     }
     
     .header-right {
-      justify-content: space-between;
+      justify-content: center;
     }
     
     .tabs-header {
@@ -3416,6 +3499,8 @@
       overflow-x: auto;
       scrollbar-width: none;
       -ms-overflow-style: none;
+      white-space: nowrap;
+      padding: 8px;
     }
     
     .tabs-nav::-webkit-scrollbar {
@@ -3423,12 +3508,17 @@
     }
     
     .filters-right {
-      justify-content: stretch;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .filter-group {
+      width: 100%;
     }
     
     .filter-select {
       min-width: auto;
-      flex: 1;
+      width: 100%;
     }
     
     .refresh-btn {
@@ -3443,61 +3533,151 @@
     }
     
     .tasks-filters, .activity-filters {
-      justify-content: stretch;
+      flex-direction: column;
+      gap: 12px;
     }
     
     .tasks-filters .filter-select, .activity-filters .filter-select {
-      flex: 1;
+      width: 100%;
+      min-width: auto;
     }
     
     .refresh-btn-secondary {
-      flex-shrink: 0;
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .metrics-grid {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    
+    .board-columns {
+      grid-template-columns: 1fr;
+      gap: 16px;
     }
   }
   
+  /* Mobile landscape and small tablets */
   @media (max-width: 768px) {
     .dashboard-container {
       flex-direction: column;
+      min-height: 100vh;
     }
     
     .sidebar {
       width: 100%;
-      padding: 16px 0;
+      padding: 12px 0;
+      order: 2;
+      border-right: none;
+      border-top: 1px solid rgba(71, 85, 105, 0.2);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      height: auto;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .logo {
+      display: none;
     }
     
     .menu {
       padding: 0 16px;
-      gap: 24px;
+      gap: 8px;
+      flex-direction: row;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    
+    .menu::-webkit-scrollbar {
+      display: none;
     }
     
     .menu-section {
-      gap: 4px;
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    
+    .section-title {
+      display: none;
+    }
+    
+    .menu-item {
+      padding: 12px;
+      min-width: 48px;
+      justify-content: center;
+      border-radius: 12px;
+      flex-shrink: 0;
+    }
+    
+    .menu-item span {
+      display: none;
+    }
+    
+    .menu-item.active::before {
+      display: none;
     }
     
     .sidebar-footer {
       padding: 0 16px;
+      margin-top: 8px;
+    }
+    
+    .logout-btn {
+      padding: 8px;
+      min-width: 48px;
+      justify-content: center;
+    }
+    
+    .logout-btn span {
+      display: none;
     }
     
     .main-content {
       padding: 16px;
+      padding-bottom: 220px; /* Space for fixed sidebar */
+      order: 1;
+      overflow-y: auto;
+      max-height: calc(100vh - 220px);
     }
     
     .header {
-      padding: 16px 20px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .header-left .welcome h1 {
+      font-size: 20px;
+      line-height: 1.3;
+    }
+    
+    .date {
+      font-size: 13px;
     }
     
     .tabs-container {
-      padding: 20px;
+      padding: 16px;
+      margin-bottom: 20px;
     }
     
     .tabs-nav {
       gap: 4px;
-      padding: 4px;
+      padding: 6px;
+      flex-wrap: nowrap;
     }
     
     .tab-button {
-      padding: 10px 16px;
-      font-size: 13px;
+      padding: 8px 12px;
+      font-size: 12px;
+      min-width: auto;
+      flex-shrink: 0;
     }
     
     .tab-button span {
@@ -3505,13 +3685,44 @@
     }
     
     .tab-button svg {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
+    }
+    
+    .filters-right {
+      gap: 8px;
+    }
+    
+    .filter-select {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    
+    .refresh-btn {
+      padding: 8px 16px;
+      font-size: 13px;
     }
     
     .metrics-grid {
-      grid-template-columns: 1fr;
-      gap: 16px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    
+    .metric-card {
+      padding: 16px;
+    }
+    
+    .metric-icon {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .metric-value {
+      font-size: 24px;
+    }
+    
+    .metric-label {
+      font-size: 12px;
     }
     
     .charts-grid {
@@ -3522,13 +3733,29 @@
       height: 250px;
     }
     
+    .chart-card {
+      padding: 16px;
+    }
+    
+    .chart-title {
+      font-size: 16px;
+    }
+    
     .projects-grid {
       grid-template-columns: 1fr;
       gap: 16px;
     }
     
+    .project-card {
+      padding: 16px;
+    }
+    
+    .project-name {
+      font-size: 16px;
+    }
+    
     .activity-timeline {
-      gap: 20px;
+      gap: 16px;
     }
     
     .timeline-item {
@@ -3542,6 +3769,10 @@
     .activity-icon {
       width: 40px;
       height: 40px;
+    }
+    
+    .activity-card {
+      padding: 16px;
     }
     
     .board-columns {
@@ -3558,46 +3789,78 @@
     }
     
     .activity-filters, .tasks-filters {
-      flex-direction: column;
-      align-items: stretch;
+      gap: 8px;
     }
     
-    .activity-filters .filter-select, .tasks-filters .filter-select {
-      min-width: auto;
+    .refresh-btn-secondary {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    
+    .create-project-btn {
+      padding: 10px 16px;
+      font-size: 13px;
     }
   }
   
+  /* Mobile portrait */
   @media (max-width: 480px) {
     .main-content {
       padding: 12px;
+      padding-bottom: 200px;
+      max-height: calc(100vh - 200px);
     }
     
     .header {
-      padding: 12px 16px;
+      padding: 12px;
+      margin-bottom: 16px;
     }
     
     .header-left .welcome h1 {
-      font-size: 22px;
+      font-size: 18px;
     }
     
     .tabs-container {
-      padding: 16px;
+      padding: 12px;
+      margin-bottom: 16px;
     }
     
     .tab-header {
-      margin-bottom: 24px;
+      margin-bottom: 16px;
     }
     
     .tab-title h2 {
-      font-size: 20px;
+      font-size: 18px;
+    }
+    
+    .tab-title p {
+      font-size: 13px;
+    }
+    
+    .metrics-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
     }
     
     .metric-card, .chart-card, .project-card, .activity-card {
-      padding: 16px;
+      padding: 14px;
+    }
+    
+    .metric-icon {
+      width: 36px;
+      height: 36px;
+    }
+    
+    .metric-value {
+      font-size: 20px;
     }
     
     .chart-container {
       height: 200px;
+    }
+    
+    .chart-title {
+      font-size: 15px;
     }
     
     .timeline-item {
@@ -3614,13 +3877,13 @@
     }
     
     .activity-card {
-      padding: 16px;
+      padding: 14px;
     }
     
     .user-avatar {
-      width: 32px;
-      height: 32px;
-      font-size: 12px;
+      width: 28px;
+      height: 28px;
+      font-size: 11px;
     }
     
     .board-column {
@@ -3630,8 +3893,89 @@
     .task-card-board {
       padding: 12px;
     }
+    
+    .task-title-board {
+      font-size: 13px;
+    }
+    
+    .sidebar {
+      max-height: 180px;
+    }
+    
+    .menu {
+      gap: 6px;
+    }
+    
+    .menu-item {
+      padding: 10px;
+      min-width: 44px;
+    }
+    
+    .filter-select {
+      padding: 10px;
+      font-size: 14px;
+    }
+    
+    .refresh-btn, .refresh-btn-secondary, .create-project-btn {
+      padding: 10px 14px;
+      font-size: 14px;
+    }
   }
   
+  /* Very small screens */
+  @media (max-width: 375px) {
+    .main-content {
+      padding: 8px;
+    }
+    
+    .header, .tabs-container {
+      padding: 10px;
+    }
+    
+    .header-left .welcome h1 {
+      font-size: 16px;
+    }
+    
+    .tab-title h2 {
+      font-size: 16px;
+    }
+    
+    .metrics-grid {
+      gap: 8px;
+    }
+    
+    .metric-card, .chart-card, .project-card, .activity-card, .board-column, .task-card-board {
+      padding: 12px;
+    }
+    
+    .metric-value {
+      font-size: 18px;
+    }
+    
+    .chart-container {
+      height: 180px;
+    }
+    
+    .activity-icon {
+      width: 28px;
+      height: 28px;
+    }
+    
+    .user-avatar {
+      width: 24px;
+      height: 24px;
+      font-size: 10px;
+    }
+    
+    .sidebar {
+      max-height: 160px;
+    }
+    
+    .menu-item {
+      padding: 8px;
+      min-width: 40px;
+    }
+  }
   /* Animaciones adicionales */
   @keyframes slideInUp {
     from {

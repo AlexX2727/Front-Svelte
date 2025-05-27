@@ -380,17 +380,20 @@
 
 
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
   /* Variables CSS */
   :root {
-    --primary-bg: #1e1e1e;
-    --card-bg: #252525;
-    --text-primary: #eaeaea;
-    --text-secondary: #a0a0a0;
-    --accent-color: #3498db;
-    --border-color: #333;
-    --highlight-color: #555;
-    --error-color: #e53935;
-    --success-color: #43a047;
+    --primary-bg: #0f172a;
+    --card-bg: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #64748b;
+    --accent-color: #3b82f6;
+    --accent-color-dark: #1d4ed8;
+    --border-color: rgba(71, 85, 105, 0.2);
+    --highlight-color: rgba(59, 130, 246, 0.1);
+    --error-color: #ef4444;
+    --success-color: #22c55e;
     --transition-time: 0.3s;
   }
   
@@ -408,12 +411,13 @@
   
   .profile-card {
     width: 100%;
-    background-color: var(--primary-bg);
-    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
     overflow: hidden;
     transition: transform var(--transition-time), box-shadow var(--transition-time);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
   }
   
   .profile-header {
@@ -422,26 +426,18 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(to right, rgba(40, 40, 40, 0.7), rgba(30, 30, 30, 0.9));
+    background: linear-gradient(to right, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
   }
   
   .profile-title {
     margin: 0;
     font-size: 28px;
     font-weight: 600;
-    background: linear-gradient(45deg, #fff, #3498db, #fff);
-    background-size: 200% auto;
+    background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: shine 3s linear infinite;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  }
-  
-  @keyframes shine {
-    to {
-      background-position: 200% center;
-    }
   }
   
   .profile-actions {
@@ -450,10 +446,10 @@
   }
   
   .edit-button {
-    background: linear-gradient(135deg, var(--accent-color), #2980b9);
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-color-dark));
     color: var(--text-primary);
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 12px 20px;
     cursor: pointer;
     font-size: 16px;
@@ -462,14 +458,14 @@
     align-items: center;
     gap: 8px;
     transition: all var(--transition-time);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
     letter-spacing: 0.5px;
   }
   
   .edit-button:hover {
-    background: linear-gradient(135deg, #2980b9, var(--accent-color));
+    background: linear-gradient(135deg, var(--accent-color-dark), var(--accent-color));
     transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
   }
   
   .button-icon {
@@ -481,7 +477,7 @@
     padding: 30px;
     display: flex;
     gap: 40px;
-    background-color: rgba(30, 30, 30, 0.6);
+    background-color: rgba(15, 23, 42, 0.6);
   }
   
   @media (max-width: 768px) {
@@ -519,7 +515,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, var(--accent-color), #2980b9);
+    background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-color-dark) 100%);
     color: var(--text-primary);
     font-size: 60px;
     font-weight: bold;
@@ -547,17 +543,18 @@
   
   .info-group {
     margin-bottom: 25px;
-    background-color: var(--card-bg);
+    background-color: rgba(30, 41, 59, 0.8);
     padding: 25px;
-    border-radius: 12px;
+    border-radius: 16px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     transition: transform var(--transition-time), box-shadow var(--transition-time);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
   }
   
   .info-group:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    border-color: rgba(59, 130, 246, 0.3);
   }
   
   .section-title {
@@ -578,7 +575,7 @@
     left: 0;
     width: 60px;
     height: 3px;
-    background: linear-gradient(90deg, var(--accent-color), #2980b9);
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-color-dark));
     border-radius: 3px;
     transition: width 0.3s ease;
   }
@@ -627,7 +624,7 @@
   }
   
   .info-row:hover {
-    background-color: rgba(255, 255, 255, 0.03);
+    background-color: rgba(59, 130, 246, 0.05);
     transform: translateX(8px);
     transition: all 0.3s ease;
     border-bottom-color: var(--accent-color);
@@ -637,7 +634,7 @@
   .role-badge {
     display: inline-block;
     padding: 6px 14px;
-    background: linear-gradient(135deg, var(--accent-color), #2980b9);
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-color-dark));
     border-radius: 20px;
     color: var(--text-primary);
     font-size: 14px;
@@ -651,15 +648,26 @@
   .role-badge:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    background: linear-gradient(135deg, #2980b9, var(--accent-color));
+    background: linear-gradient(135deg, var(--accent-color-dark), var(--accent-color));
   }
   
   .profile-error {
     margin: 20px 30px;
     padding: 15px 20px;
-    background-color: rgba(229, 57, 53, 0.1);
+    background-color: rgba(239, 68, 68, 0.1);
     border-left: 4px solid var(--error-color);
     color: var(--error-color);
+    border-radius: 0 4px 4px 0;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  
+  .success-message {
+    margin: 20px 30px;
+    padding: 15px 20px;
+    background-color: rgba(34, 197, 94, 0.1);
+    border-left: 4px solid var(--success-color);
+    color: var(--success-color);
     border-radius: 0 4px 4px 0;
     font-weight: 500;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -676,12 +684,12 @@
   .loading-spinner {
     width: 50px;
     height: 50px;
-    border: 4px solid rgba(51, 51, 51, 0.3);
+    border: 4px solid rgba(30, 41, 59, 0.3);
     border-top: 4px solid var(--accent-color);
     border-radius: 50%;
     animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
     margin-bottom: 20px;
-    box-shadow: 0 0 20px rgba(85, 85, 85, 0.1);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
   }
   
   @keyframes spin {
@@ -690,9 +698,9 @@
   }
   
   @keyframes glow {
-    0% { box-shadow: 0 0 5px rgba(52, 152, 219, 0.3); }
-    50% { box-shadow: 0 0 15px rgba(52, 152, 219, 0.5); }
-    100% { box-shadow: 0 0 5px rgba(52, 152, 219, 0.3); }
+    0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.3); }
+    50% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
+    100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.3); }
   }
   
   .edit-form {
@@ -708,24 +716,26 @@
   .form-group label {
     display: block;
     margin-bottom: 0.5rem;
-    color: #fff;
+    color: var(--text-primary);
     font-weight: 500;
   }
   
   .form-group input {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid #3498db;
-    border-radius: 4px;
-    background-color: #1e1e1e;
-    color: #fff;
+    border: 1px solid var(--accent-color);
+    border-radius: 12px;
+    background-color: rgba(15, 23, 42, 0.8);
+    color: var(--text-primary);
     font-size: 1rem;
+    transition: all 0.3s ease;
   }
   
   .form-group input:focus {
     outline: none;
-    border-color: #2980b9;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    border-color: var(--accent-color-dark);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    background-color: rgba(30, 41, 59, 0.8);
   }
   
   .form-actions {
@@ -737,43 +747,51 @@
   .save-button, .cancel-button {
     padding: 0.75rem 1.5rem;
     border: none;
-    border-radius: 4px;
+    border-radius: 12px;
     font-size: 1rem;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
   
   .save-button {
-    background-color: #3498db;
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-color-dark));
     color: white;
   }
   
   .save-button:hover {
-    background-color: #2980b9;
+    background: linear-gradient(135deg, var(--accent-color-dark), var(--accent-color));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(59, 130, 246, 0.3);
   }
   
   .cancel-button {
-    background-color: #e74c3c;
+    background: linear-gradient(135deg, var(--error-color), #b91c1c);
     color: white;
   }
   
   .cancel-button:hover {
-    background-color: #c0392b;
+    background: linear-gradient(135deg, #b91c1c, var(--error-color));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(239, 68, 68, 0.3);
   }
   
   .avatar-label {
     position: relative;
     display: block;
     cursor: pointer;
+    border-radius: 50%;
+    overflow: hidden;
   }
   
   .avatar-overlay {
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.7);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -782,26 +800,16 @@
     border-radius: 50%;
   }
   
-  .avatar-label:hover .avatar-overlay {
-    opacity: 1;
-  }
-  
   .avatar-overlay span {
     color: white;
-    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: center;
+    padding: 10px;
+    font-size: 16px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   }
   
-  .error-message {
-    color: #e74c3c;
-    padding: 1rem;
-    text-align: center;
-    margin-bottom: 1rem;
-  }
-  
-  .success-message {
-    color: #2ecc71;
-    padding: 1rem;
-    text-align: center;
-    margin-bottom: 1rem;
+  .avatar-label:hover .avatar-overlay {
+    opacity: 1;
   }
 </style>

@@ -69,7 +69,6 @@
     }
   }
 </script>
-
 <div class="proyecto-page" role="dialog" aria-labelledby="modal-title">
   <div class="animated-bg">
     <div class="animated-shape shape1"></div>
@@ -229,8 +228,15 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
     z-index: 1000;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   .animated-bg {
@@ -243,7 +249,7 @@
   .animated-shape {
     position: absolute;
     border-radius: 50%;
-    background: linear-gradient(45deg, #9c27b0, #4a148c);
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
     opacity: 0.1;
     animation: float 20s infinite;
   }
@@ -280,14 +286,21 @@
   }
 
   .form-wrapper {
-    background: #1a1a1a;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     padding: 2rem;
-    border-radius: 12px;
+    border-radius: 16px;
     width: 90%;
     max-width: 600px;
     position: relative;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(156, 39, 176, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    font-family: 'Inter', sans-serif;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
   }
 
   .form-header {
@@ -295,20 +308,21 @@
     align-items: center;
     margin-bottom: 2rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(156, 39, 176, 0.2);
+    border-bottom: 1px solid rgba(59, 130, 246, 0.2);
   }
 
   .form-title-icon {
     width: 40px;
     height: 40px;
     margin-right: 1rem;
-    color: #9c27b0;
+    color: #3b82f6;
   }
 
   h1 {
-    color: #fff;
+    color: #f8fafc;
     font-size: 1.5rem;
     margin: 0;
+    font-weight: 600;
   }
 
   .close-button {
@@ -317,14 +331,21 @@
     right: 1rem;
     background: none;
     border: none;
-    color: #9c27b0;
+    color: #64748b;
     font-size: 1.5rem;
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
   }
 
   .close-button:hover {
-    color: #4a148c;
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
   }
 
   .input-group {
@@ -333,15 +354,17 @@
   }
 
   .input-group.active label {
-    color: #9c27b0;
+    color: #3b82f6;
   }
 
   label {
     display: flex;
     align-items: center;
-    color: #b0b0b0;
+    color: #94a3b8;
     margin-bottom: 0.5rem;
     transition: color 0.3s ease;
+    font-size: 0.875rem;
+    font-weight: 500;
   }
 
   label svg {
@@ -353,16 +376,17 @@
   input, textarea {
     width: 100%;
     padding: 0.75rem;
-    background: #252525;
-    border: 1px solid #333;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(71, 85, 105, 0.3);
     border-radius: 8px;
-    color: #fff;
+    color: #f8fafc;
     transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
   }
 
   input:focus, textarea:focus {
-    border-color: #9c27b0;
-    box-shadow: 0 0 0 2px rgba(156, 39, 176, 0.2);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
     outline: none;
   }
 
@@ -382,19 +406,19 @@
   }
 
   .input-group.date input::-webkit-calendar-picker-indicator {
-    filter: invert(1);
+    filter: invert(0.8);
     cursor: pointer;
+    opacity: 0.6;
   }
 
-  textarea {
-    min-height: 100px;
-    resize: vertical;
+  .input-group.date input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
   }
 
   .submit-button {
     width: 100%;
     padding: 1rem;
-    background: #9c27b0;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
     color: white;
     border: none;
     border-radius: 8px;
@@ -403,10 +427,13 @@
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
   }
 
   .submit-button:hover:not(:disabled) {
-    background: #7b1fa2;
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
   }
 
   .submit-button:disabled {
@@ -419,11 +446,14 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    position: relative;
+    z-index: 2;
   }
 
   .success-container {
     text-align: center;
     padding: 2rem;
+    color: #f8fafc;
   }
 
   .success-effect {
@@ -439,7 +469,7 @@
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 3rem;
-    color: #69f0ae;
+    color: #10b981;
   }
 
   .success-rings {
@@ -452,7 +482,7 @@
 
   .ring {
     position: absolute;
-    border: 2px solid #69f0ae;
+    border: 2px solid #10b981;
     border-radius: 50%;
     animation: ripple 1.5s linear infinite;
   }
@@ -487,5 +517,28 @@
     0%, 100% { transform: translateX(0); }
     10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
     20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+
+  .error-container {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .error-icon {
+    width: 24px;
+    height: 24px;
+    background: rgba(239, 68, 68, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
   }
 </style>
